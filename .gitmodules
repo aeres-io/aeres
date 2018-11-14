@@ -1,0 +1,3 @@
+[submodule "src/libquic"]
+	path = src/libquic
+	url = git@github.com:aeres-io/libquic.git
