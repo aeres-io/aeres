@@ -43,11 +43,6 @@ macro(aeres_sys_lib target name)
   target_link_libraries(${ARGV0} ${ARGV1})
 endmacro(aeres_sys_lib)
 
-macro(aeres_dll target name path)
-  find_library(${ARGV1} ${ARGV1} HINTS ${ARGV2})
-  target_link_libraries(${ARGV0} ${ARGV1})
-endmacro(aeres_dll)
-
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
