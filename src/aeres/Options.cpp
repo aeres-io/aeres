@@ -58,9 +58,9 @@ bool Options::Usage(const char * message, ...)
   printf("Usage: aeres [option]\n");
   printf("\n");
   printf("Options:\n");
-  printf("  -n <name>       relay client name\n");
-  printf("  -h <hostname>   hostname of relay server\n");
-  printf("  -p <port>       QUIC port of relay server (default:7900)\n");
+  printf("  -n <name>       aeres client name\n");
+  printf("  -h <hostname>   hostname of aeres server\n");
+  printf("  -p <port>       QUIC port of aeres server (default:7900)\n");
   printf("  -l <level>      log level (0-5. 0 for debug, 5 for critical. default:2)\n");
   printf("  -o <log_file>   log file (default: stdout)\n");
   printf("\n");
