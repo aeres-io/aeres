@@ -33,15 +33,13 @@ class Options
 {
 public:
 
-  static std::string name;
-
+  static std::string appId;
+  static std::string clientId;
   static std::string host;
-
   static uint16_t port;
-
   static aeres::LogLevel logLevel;
-
   static std::string logFile;
+  static bool daemon;
 
   static bool Usage(const char * message = nullptr, ...);
   static bool Init(int argc, const char ** argv);

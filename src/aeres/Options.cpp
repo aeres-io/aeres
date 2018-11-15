@@ -29,11 +29,11 @@
 
 #include "Options.h"
 
-std::string Options::name;
-
-std::string Options::host;
-
+std::string Options::appId;
+std::string Options::clientId("auto");
+std::string Options::host("aereslab.com");
 uint16_t Options::port = 7900;
+bool Options::daemon = false;
 
 #ifndef DEBUG
 aeres::LogLevel Options::logLevel = aeres::LogLevel::INFOMATION;
@@ -58,9 +58,11 @@ bool Options::Usage(const char * message, ...)
   printf("Usage: aeres [option]\n");
   printf("\n");
   printf("Options:\n");
-  printf("  -n <name>       aeres client name\n");
-  printf("  -h <hostname>   hostname of aeres server\n");
-  printf("  -p <port>       QUIC port of aeres server (default:7900)\n");
+  printf("  -a <appid>      aeres app id (required)\n");
+  printf("  -c <clientid>   aeres client id (default: auto)\n");
+  printf("  -h <host>       aeres server name (default: aereslab.com)\n");
+  printf("  -p <port>       aeres server port (default: 7900)\n");
+  printf("  -d              start client as a daemon\n");
   printf("  -l <level>      log level (0-5. 0 for debug, 5 for critical. default:2)\n");
   printf("  -o <log_file>   log file (default: stdout)\n");
   printf("\n");
@@ -77,20 +79,29 @@ bool Options::Init(int argc, const char **argv)
 
   for (int i = 1; i < argc; ++i)
   {
-    if (strcmp(argv[i], "-n") == 0)
+    if (strcmp(argv[i], "-a") == 0)
     {
-      assert_argument_index(++i, "name");
-      name = argv[i];
+      assert_argument_index(++i, "appid");
+      appId = argv[i];
+    }
+    else if (strcmp(argv[i], "-c") == 0)
+    {
+      assert_argument_index(++i, "clientid");
+      clientId = argv[i];
     }
     else if (strcmp(argv[i], "-h") == 0)
     {
-      assert_argument_index(++i, "hostname");
+      assert_argument_index(++i, "host");
       host = argv[i];
     }
     else if (strcmp(argv[i], "-p") == 0)
     {
       assert_argument_index(++i, "port");
       port = static_cast<uint16_t>(atoi(argv[i]));
+    }
+    else if (strcmp(argv[i], "-d") == 0)
+    {
+      daemon = true;
     }
     else if (strcmp(argv[i], "-l") == 0)
     {
@@ -108,14 +119,14 @@ bool Options::Init(int argc, const char **argv)
     }
   }
 
-  if (name.empty())
+  if (appId.empty())
   {
-    Usage("Missing argument 'name'.\n");
+    Usage("Missing argument 'appid'.\n");
   }
 
   if (host.empty())
   {
-    Usage("Missing argument 'hostname'.\n");
+    Usage("Missing argument 'host'.\n");
   }
 
   return true;

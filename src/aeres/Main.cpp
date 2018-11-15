@@ -56,7 +56,7 @@ int main(int argc, const char ** argv)
   {
     aeres::Log::Information("Starting relay client...");
 
-    aeres::client::QuicClient client{Options::name, Options::host, Options::port};
+    aeres::client::QuicClient client{Options::clientId, Options::host, Options::port};
 
     if (!client.Start())
     {
