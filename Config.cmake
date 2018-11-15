@@ -50,7 +50,7 @@ list(GET _VERSION_LIST 2 VERSION_BUILD)
 # submodules
 
 if (NOT DEFINED ROOT_LIBQUIC)
-  set(ROOT_CM256 ${ROOT}/src/libquic CACHE PATH "libquic directory" FORCE)
+  set(ROOT_LIBQUIC ${ROOT}/src/libquic CACHE PATH "libquic directory" FORCE)
 endif (NOT DEFINED ROOT_LIBQUIC)
 
 # C++

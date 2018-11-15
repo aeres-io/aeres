@@ -24,31 +24,27 @@
 # =============================================================================
 #
 
-macro(aeres_use_pthread target)
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_package(Threads REQUIRED)
-  target_link_libraries(${ARGV0} Threads::Threads)
-endmacro(aeres_use_pthread)
+cmake_minimum_required(VERSION 3.1)
 
-macro(aeres_lib target name path)
-  if (NOT TARGET ${ARGV1})
-    add_library(${ARGV1} STATIC IMPORTED)
-    set_target_properties(${ARGV1} PROPERTIES IMPORTED_LOCATION ${ARGV2})
-  endif (NOT TARGET ${ARGV1})
-  target_link_libraries(${ARGV0} ${ARGV1})
-endmacro(aeres_lib)
+project(libaeres-quic)
 
-macro(aeres_sys_lib target name)
-  find_library(${ARGV1} ${ARGV1})
-  target_link_libraries(${ARGV0} ${ARGV1})
-endmacro(aeres_sys_lib)
+set(ROOT ${PROJECT_SOURCE_DIR}/../..)
 
-macro(aeres_dll target name path)
-  find_library(${ARGV1} ${ARGV1} HINTS ${ARGV2})
-  target_link_libraries(${ARGV0} ${ARGV1})
-endmacro(aeres_dll)
+include(${ROOT}/Config.cmake)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+
+add_library(
+  aeres-quic STATIC
+
+  QuicConnection.cpp
+)
+
+include_directories("../include")
+include_directories("${ROOT_LIBQUIC}/src")
+include_directories("${ROOT_LIBQUIC}/src/quic")
+include_directories("${ROOT_LIBQUIC}/src/quic/gen")
+include_directories("${ROOT_LIBQUIC}/src/quic/third_party/protobuf/src")
+include_directories("${ROOT_LIBQUIC}/src/third_party/boringssl/src/include")
+
+add_definitions(-DSSL_LIB=\"boringssl.so\")
 
