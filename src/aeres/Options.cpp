@@ -29,6 +29,7 @@
 
 #include "Options.h"
 
+std::string Options::command;
 std::string Options::appId;
 std::string Options::clientId("auto");
 std::string Options::host("aereslab.com");
@@ -55,17 +56,209 @@ bool Options::Usage(const char * message, ...)
     printf("\n");
   }
 
-  printf("Usage: aeres [option]\n");
-  printf("\n");
-  printf("Options:\n");
-  printf("  -a <appid>      aeres app id (required)\n");
-  printf("  -c <clientid>   aeres client id (default: auto)\n");
-  printf("  -h <host>       aeres server name (default: aereslab.com)\n");
-  printf("  -p <port>       aeres server port (default: 7900)\n");
-  printf("  -d              start client as a daemon\n");
-  printf("  -l <level>      log level (0-5. 0 for debug, 5 for critical. default:2)\n");
-  printf("  -o <log_file>   log file (default: stdout)\n");
-  printf("\n");
+  if (Options::command == "app")
+  {
+    printf("Usage:\n");
+    printf("\n");
+    printf("  aeres app <action> [options]\n");
+    printf("\n");
+    printf("Description:\n");
+    printf("\n");
+    printf("  Manage applications IDs\n");
+    printf("\n");
+    printf("  Note: these actions require user authentication (-u and -p)\n");
+    printf("\n");
+    printf("Actions:\n");
+    printf("\n");
+    printf("  --list                          List application IDs\n");
+    printf("  --add                           Add a new application ID\n");
+    printf("  --remove-all                    Remove all application IDs\n");
+    printf("\n");
+    printf("  Note: the following actions require an application ID (-a)\n");
+    printf("\n");
+    printf("  --remove                        Remove an application ID\n");
+    printf("  --get-all                       Retrieves all properties\n");
+    printf("  --get <property>                Retrieves a property\n");
+    printf("  --set <property> <value>        Sets a property\n");
+    printf("  --del <property>                Deletes a property\n");
+    printf("\n");
+    printf("Options:\n");
+    printf("\n");
+    printf("  -a,--application <application>  Specify the application ID\n");
+    printf("\n");
+  }
+  else if (Options::command == "endpoint")
+  {
+    printf("Usage:\n");
+    printf("\n");
+    printf("  aeres endpoint <action> [options]\n");
+    printf("\n");
+    printf("Description:\n");
+    printf("\n");
+    printf("  Manages application endpoints\n");
+    printf("\n");
+    printf("  Note: these actions require user authentication (-u and -p) as\n");
+    printf("        well as a valid application ID (-a)\n");
+    printf("\n");
+    printf("Actions:\n");
+    printf("\n");
+    printf("  --list                          List endpoints\n");
+    printf("  --add                           Add a new endpoint\n");
+    printf("  --remove-all                    Remove all endpoints\n");
+    printf("\n");
+    printf("  Note: the following actions require an endpoint ID (-e)\n");
+    printf("\n");
+    printf("  --remove                        Remove an endpoint\n");
+    printf("  --get-all                       Retrieves all properties\n");
+    printf("  --get <property>                Retrieves a property\n");
+    printf("  --set <property> <value>        Sets a property\n");
+    printf("  --del <property>                Deletes a property\n");
+    printf("\n");
+    printf("Options:\n");
+    printf("\n");
+    printf("  -e,--endpoint <endpoint>        Specify the endpoint ID\n");
+    printf("\n");
+    printf("Properties:\n");
+    printf("\n");
+    printf("  access                          public|private\n");
+    printf("  password                        <string>\n");
+    printf("\n");
+  }
+  else if (Options::command == "rule")
+  {
+    printf("Usage:\n");
+    printf("\n");
+    printf("  aeres rule <action> [options]\n");
+    printf("\n");
+    printf("Description:\n");
+    printf("\n");
+    printf("  Manages application endpoint rules\n");
+    printf("\n");
+    printf("  Note: these actions require user authentication (-u and -p) as\n");
+    printf("        well as a valid application ID (-a) and endpoint ID (-e)\n");
+    printf("\n");
+    printf("Actions:\n");
+    printf("\n");
+    printf("  --list                          List rules\n");
+    printf("  --add <rulespec>                Add a new rule\n");
+    printf("  --remove-all                    Remove all rules\n");
+    printf("\n");
+    printf("  Note: the following actions require a rule ID (-r)\n");
+    printf("\n");
+    printf("  --remove                        Remove a rule\n");
+    printf("  --update <rulespec>             Update a rule\n");
+    printf("  --get-all                       Retrieves all properties\n");
+    printf("  --get <property>                Retrieves a property\n");
+    printf("  --set <property> <value>        Sets a property\n");
+    printf("  --del <property>                Deletes a property\n");
+    printf("\n");
+    printf("Options:\n");
+    printf("\n");
+    printf("  -r,--rule <rule>                Specify the rule ID\n");
+    printf("\n");
+    printf("Properties:\n");
+    printf("\n");
+    printf("  action                          accept|reject|notify\n");
+    printf("  url                             <dns-name>\n");
+    printf("  port                            <port-range>\n");
+    printf("  Protocol                        tcp|udp|both\n");
+    printf("\n");
+    printf("Rule Specification:\n");
+    printf("\n");
+    printf("  The rule is specified as a single string with the following\n");
+    printf("  syntax:\n");
+    printf("\n");
+    printf("    <action>:<name>:<port>[:<protocol>]\n");
+    printf("\n");
+    printf("  Where <action> is one of:\n");
+    printf("\n");
+    printf("    accept\n");
+    printf("    reject\n");
+    printf("    notify\n");
+    printf("\n");
+    printf("  Where <name> is a valid DNS name (wildcards OK):\n");
+    printf("\n");
+    printf("    myendpoint                    eg. myendpoint.aereslab.com\n");
+    printf("    www.mysite.com                eg. www.mysite.com\n");
+    printf("    *.mysite.com                  eg. mysite.com or www.mysite.com\n");
+    printf("\n");
+    printf("  Where <port> is a port, port range, or port name:\n");
+    printf("\n");
+    printf("    443                           default HTTPS port\n");
+    printf("    20-22                         ports 20, 21, and 22\n");
+    printf("    80,443                        ports 80 and 443\n");
+    printf("    HTTPS                         HTTPS port 443\n");
+    printf("\n");
+    printf("  Where <protocol> is one of:\n");
+    printf("\n");
+    printf("    udp\n");
+    printf("    tcp\n");
+    printf("    both\n");
+    printf("\n");
+  }
+  else if (Options::command == "listen")
+  {
+    printf("Usage:\n");
+    printf("\n");
+    printf("  aeres listen [options]\n");
+    printf("\n");
+    printf("Description:\n");
+    printf("\n");
+    printf("  Creates a listener to process incoming requests\n");
+    printf("\n");
+    printf("Options:\n");
+    printf("\n");
+    printf("  -a,--application <application>  Application ID (required)\n");
+    printf("  -e,--endpoint <endpoint>        Endpoint ID (required)\n");
+    printf("  -h,--host <host>[:<port>]       Aeres Host (optional)\n");
+    printf("\n");
+  }
+  else if (Options::command == "tunnel")
+  {
+    printf("Usage:\n");
+    printf("\n");
+    printf("  aeres tunnel [options]\n");
+    printf("\n");
+    printf("Description:\n");
+    printf("\n");
+    printf("  Creates a tunnel to forward outgoing requests\n");
+    printf("\n");
+    printf("Options:\n");
+    printf("\n");
+    printf("  -e,--endpoint <endpoint>        Endpoint ID (required)\n");
+    printf("  -h,--host <host>[:<port>]       Aeres Host (optional)\n");
+    printf("  -p,--password <password>        Password (optional)\n");
+    printf("\n");
+  }
+  else
+  {
+    printf("Usage:\n");
+    printf("\n");
+    printf("  aeres <command> [options]\n");
+    printf("\n");
+    printf("Description:\n");
+    printf("\n");
+    printf("  Command line interface for Aeres\n");
+    printf("\n");
+    printf("Commands:\n");
+    printf("\n");
+    printf("  aeres                          Enter REPL environment\n");
+    printf("  aeres app                      Manage applications\n");
+    printf("  aeres endpoint                 Manage endpoints\n");
+    printf("  aeres rule                     Manage rules\n");
+    printf("  aeres listen                   Start listen service\n");
+    printf("  aeres tunnel                   Start tunnel service\n");
+    printf("\n");
+    printf("Options:\n");
+    printf("\n");
+    printf("  -u,--user <user>               Username / Email address\n");
+    printf("  -p,--password <password>       Password\n");
+    printf("  -h,--host <host>[:port]        Aeres host server\n");
+    printf("  -l,--log <log-file>            Log file location\n");
+    printf("  -?,--help                      Help\n");
+    printf("\n");
+  }
+
   exit(message == NULL ? 0 : 1);
 }
 
@@ -77,7 +270,12 @@ bool Options::Init(int argc, const char **argv)
     Usage("Missing argument '%s'.\n", _name); \
   }
 
-  for (int i = 1; i < argc; ++i)
+  if (argc >= 2)
+  {
+    command = argv[1];
+  }
+
+  for (int i = 2; i < argc; ++i)
   {
     if (strcmp(argv[i], "-a") == 0)
     {

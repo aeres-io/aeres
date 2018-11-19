@@ -32,7 +32,7 @@
 class Options
 {
 public:
-
+  static std::string command;
   static std::string appId;
   static std::string clientId;
   static std::string host;
