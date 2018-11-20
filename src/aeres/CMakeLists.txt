@@ -40,6 +40,12 @@ add_executable(
 
   Main.cpp
   Options.cpp
+  AeresSession.cpp
+  AeresApplication.cpp
+  AeresEndpoint.cpp
+  AeresRule.cpp
+  AeresListener.cpp
+  AeresTunnel.cpp
 )
 
 include_directories("../include")

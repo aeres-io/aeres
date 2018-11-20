@@ -30,12 +30,21 @@
 
 #include <aeres/Log.h>
 #include <aeres/client/QuicClient.h>
+#include "AeresSession.h"
+#include "AeresApplication.h"
+#include "AeresEndpoint.h"
+#include "AeresRule.h"
+#include "AeresListener.h"
+#include "AeresTunnel.h"
 
 #include "Options.h"
 
+using namespace aeres;
 
 int main(int argc, const char ** argv)
 {
+  int res = 0;
+
   Options::Init(argc, argv);
 
   FILE * log = stdout;
@@ -52,24 +61,46 @@ int main(int argc, const char ** argv)
   aeres::Log::SetTarget(log);
   aeres::Log::SetDefaultLevel(Options::logLevel);
 
-  while (true)
+  std::shared_ptr<AeresSession> session(new AeresSession(Options::host, Options::port));
+
+  switch (Options::command)
   {
-    aeres::Log::Information("Starting relay client...");
-
-    aeres::client::QuicClient client{Options::clientId, Options::host, Options::port};
-
-    if (!client.Start())
+    default:
+    case Command::None:
     {
-      aeres::Log::Critical("Failed to start relay client.");
+      printf("TODO: REPL environment\n");
+      break;
     }
-
-    aeres::Log::Information("Relay client started.");
-
-    client.WaitForExit();
-
-    aeres::Log::Information("Prepare to restart relay client...");
-
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    case Command::Application:
+    {
+      AeresApplication application(session);
+      res = application.Process();
+      break;
+    }
+    case Command::Endpoint:
+    {
+      AeresEndpoint endpoint(session, Options::applicationId);
+      res = endpoint.Process();
+      break;
+    }
+    case Command::Rule:
+    {
+      AeresRule rule(session, Options::applicationId, Options::endpointId);
+      res = rule.Process();
+      break;
+    }
+    case Command::Listen:
+    {
+      AeresListener listener(Options::applicationId, Options::endpointId);
+      res = listener.Process();
+      break;
+    }
+    case Command::Tunnel:
+    {
+      AeresTunnel tunnel(Options::endpointId, Options::key);
+      res = tunnel.Process();
+      break;
+    }
   }
 
   if (log && log != stdout)
@@ -77,5 +108,5 @@ int main(int argc, const char ** argv)
     fclose(log);
   }
 
-  return 0;
+  return res;
 }

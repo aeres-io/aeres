@@ -29,18 +29,66 @@
 
 #include <aeres/Log.h>
 
-class Options
+namespace aeres
 {
-public:
-  static std::string command;
-  static std::string appId;
-  static std::string clientId;
-  static std::string host;
-  static uint16_t port;
-  static aeres::LogLevel logLevel;
-  static std::string logFile;
-  static bool daemon;
+  namespace Action
+  {
+    enum T
+    {
+      None = 0,
+      Add = 1,
+      Update = 2,
+      Show = 3,
+      List = 4,
+      Remove = 5,
+      RemoveAll = 6,
+      Get = 7,
+      GetAll = 8,
+      Set = 9,
+      Del = 10,
+      Unknown = 11
+    };
 
-  static bool Usage(const char * message = nullptr, ...);
-  static bool Init(int argc, const char ** argv);
-};
+    const char * ToString(T value);
+  }
+
+  namespace Command
+  {
+    enum T
+    {
+      None = 0,
+      Application = 1,
+      Endpoint = 2,
+      Rule = 3,
+      Listen = 4,
+      Tunnel = 5,
+      Unknown = 6
+    };
+
+    const char * ToString(T value);
+  }
+
+  class Options
+  {
+  public:
+    static Command::T command;
+    static std::string username;
+    static std::string password;
+    static std::string host;
+    static uint16_t port;
+    static std::string logFile;
+    static aeres::LogLevel logLevel;
+    static aeres::Action::T action;
+    static std::string applicationId;
+    static std::string endpointId;
+    static std::string ruleId;
+    static std::string name;
+    static std::string value;
+    static std::string key;
+    static bool daemon;
+
+    static bool Usage(const char * message = nullptr, ...);
+    static bool Init(int argc, const char ** argv);
+    static bool Validate();
+  };
+}
