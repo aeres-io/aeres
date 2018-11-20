@@ -26,47 +26,19 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-project(aeres)
+project(libjson)
 
 set(ROOT ${PROJECT_SOURCE_DIR}/../..)
 
 include(${ROOT}/Config.cmake)
 
-link_directories(${ROOT_LIBQUIC}/out/lib)
 
+add_library(
+  json STATIC
 
-add_executable(
-  aeres
-
-  Main.cpp
-  Options.cpp
-  Config.cpp
-  AeresSession.cpp
-  AeresApplication.cpp
-  AeresEndpoint.cpp
-  AeresRule.cpp
-  AeresListener.cpp
-  AeresTunnel.cpp
+  json_reader.cpp
+  json_value.cpp
+  json_writer.cpp
 )
 
-include_directories("../include")
-include_directories("../json/include")
-include_directories("${ROOT_LIBQUIC}/src")
-include_directories("${ROOT_LIBQUIC}/src/quic")
-include_directories("${ROOT_LIBQUIC}/src/quic/gen")
-include_directories("${ROOT_LIBQUIC}/src/quic/third_party/protobuf/src")
-include_directories("${ROOT_LIBQUIC}/src/third_party/boringssl/src/include")
-
-add_definitions(-DSSL_LIB=\"boringssl.so\")
-
-aeres_lib(aeres libaeres-client ${LIBDIR}/libaeres-client.a)
-aeres_lib(aeres libaeres-quic ${LIBDIR}/libaeres-quic.a)
-aeres_lib(aeres libaeres-common ${LIBDIR}/libaeres-common.a)
-aeres_lib(aeres libjson ${LIBDIR}/libjson.a)
-
-aeres_sys_lib(aeres quic)
-aeres_sys_lib(aeres boringssl)
-aeres_sys_lib(aeres dl)
-aeres_sys_lib(aeres z)
-
-aeres_use_pthread(aeres)
+include_directories("include")

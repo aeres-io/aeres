@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include "Options.h"
+#include "Config.h"
 
 namespace aeres
 {
@@ -78,6 +79,7 @@ std::string Options::username;
 std::string Options::password;
 std::string Options::host("aereslab.com");
 uint16_t Options::port = 7900;
+std::string Options::cfgFile("/etc/aeres/aeres.conf");
 std::string Options::logFile("/var/log/aeres.log");
 aeres::LogLevel Options::logLevel =
 #ifndef DEBUG
@@ -299,7 +301,8 @@ bool Options::Usage(const char * message, ...)
       printf("  -u,--username <user>           Username / Email address\n");
       printf("  -p,--password <password>       Password\n");
       printf("  -h,--host <host>[:port]        Aeres host server\n");
-      printf("  -l,--log <log-file>            Log file location\n");
+      printf("  -c,--config <config-file>      Config path (/etc/aeres/aeres.conf)\n");
+      printf("  -l,--log <log-file>            Log path (/var/log/aeres.log)\n");
       printf("  -?,--help                      Help\n");
       printf("\n");
       break;
@@ -425,6 +428,11 @@ bool Options::Init(int argc, const char **argv)
       assert_argument_index(++i, argv[i-1]);
       key = argv[i];
     }
+    else if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--config") == 0)
+    {
+      assert_argument_index(++i, argv[i-1]);
+      cfgFile = argv[i];
+    }
     else if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--log") == 0)
     {
       assert_argument_index(++i, argv[i-1]);
@@ -450,6 +458,27 @@ bool Options::Init(int argc, const char **argv)
 
 bool Options::Validate()
 {
+  Config config(cfgFile);
+  if (config.Load())
+  {
+    if (Options::username.size() == 0)
+    {
+      Options::username = config.Root()["username"].asString();
+    }
+    if (Options::password.size() == 0)
+    {
+      Options::password = config.Root()["password"].asString();
+    }
+    if (Options::applicationId.size() == 0)
+    {
+      Options::applicationId = config.Root()["application"].asString();
+    }
+    if (Options::endpointId.size() == 0)
+    {
+      Options::endpointId = config.Root()["endpoint"].asString();
+    }
+  }
+
   switch (Options::command)
   {
     case Command::None:

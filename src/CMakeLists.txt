@@ -31,6 +31,7 @@ project(aeres_src)
 set(ROOT ${PROJECT_SOURCE_DIR}/..)
 
 add_subdirectory(libquic)
+add_subdirectory(json)
 add_subdirectory(common)
 add_subdirectory(quic)
 add_subdirectory(libaeres)
