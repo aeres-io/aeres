@@ -87,6 +87,7 @@ namespace aeres
     static std::string value;
     static std::string key;
     static bool daemon;
+    static bool saveCfg;
 
     static bool Usage(const char * message = nullptr, ...);
     static bool Init(int argc, const char ** argv);

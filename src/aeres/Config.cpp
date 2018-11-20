@@ -23,6 +23,13 @@ bool Config::Load()
 
 bool Config::Save()
 {
+  std::ofstream jsonStream(path);
+  if (jsonStream)
+  {
+    jsonStream << root;
+    return true;
+  }
+  return false;
 }
 
 Json::Value & Config::Root()

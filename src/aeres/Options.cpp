@@ -22,13 +22,17 @@
   SOFTWARE.
 */
 
+#include "Options.h"
+#include "Config.h"
+
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
-#include "Options.h"
-#include "Config.h"
 
 namespace aeres
 {
@@ -77,10 +81,10 @@ namespace Command
 Command::T Options::command = Command::None;
 std::string Options::username;
 std::string Options::password;
-std::string Options::host("aereslab.com");
-uint16_t Options::port = 7900;
-std::string Options::cfgFile("/etc/aeres/aeres.conf");
-std::string Options::logFile("/var/log/aeres.log");
+std::string Options::host;
+uint16_t Options::port;
+std::string Options::cfgFile;
+std::string Options::logFile;
 aeres::LogLevel Options::logLevel =
 #ifndef DEBUG
   aeres::LogLevel::INFOMATION;
@@ -95,6 +99,7 @@ std::string Options::name;
 std::string Options::value;
 std::string Options::key;
 bool Options::daemon;
+bool Options::saveCfg;
 
 bool Options::Usage(const char * message, ...)
 {
@@ -302,6 +307,7 @@ bool Options::Usage(const char * message, ...)
       printf("  -p,--password <password>       Password\n");
       printf("  -h,--host <host>[:port]        Aeres host server\n");
       printf("  -c,--config <config-file>      Config path (/etc/aeres/aeres.conf)\n");
+      printf("  -s,--save                      Save options to config\n");
       printf("  -l,--log <log-file>            Log path (/var/log/aeres.log)\n");
       printf("  -?,--help                      Help\n");
       printf("\n");
@@ -433,6 +439,10 @@ bool Options::Init(int argc, const char **argv)
       assert_argument_index(++i, argv[i-1]);
       cfgFile = argv[i];
     }
+    else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--save") == 0)
+    {
+      saveCfg = true;
+    }
     else if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--log") == 0)
     {
       assert_argument_index(++i, argv[i-1]);
@@ -458,25 +468,97 @@ bool Options::Init(int argc, const char **argv)
 
 bool Options::Validate()
 {
+  if (cfgFile.size() == 0)
+  {
+    const char *homedir;
+    if ((homedir = getenv("HOME")) == NULL)
+    {
+      homedir = getpwuid(getuid())->pw_dir;
+    }
+    if (homedir != NULL)
+    {
+      cfgFile = homedir;
+      cfgFile.append("/");
+    }
+    cfgFile.append(".aeres.conf");
+  }
   Config config(cfgFile);
   if (config.Load())
   {
-    if (Options::username.size() == 0)
+    if (Options::username.size() == 0 && config.Root().isMember("username"))
     {
       Options::username = config.Root()["username"].asString();
     }
-    if (Options::password.size() == 0)
+    if (Options::password.size() == 0 && config.Root().isMember("password"))
     {
       Options::password = config.Root()["password"].asString();
     }
-    if (Options::applicationId.size() == 0)
+    if (Options::applicationId.size() == 0 && config.Root().isMember("application"))
     {
       Options::applicationId = config.Root()["application"].asString();
     }
-    if (Options::endpointId.size() == 0)
+    if (Options::endpointId.size() == 0 && config.Root().isMember("endpoint"))
     {
       Options::endpointId = config.Root()["endpoint"].asString();
     }
+    if (Options::logFile.size() == 0 && config.Root().isMember("log"))
+    {
+      Options::logFile = config.Root()["log"].asString();
+    }
+    if (Options::host.size() == 0 && config.Root().isMember("host"))
+    {
+      Options::host = config.Root()["host"].asString();
+    }
+    if(Options::port == 0 && config.Root().isMember("port"))
+    {
+      Options::port = config.Root()["port"].asUInt();
+    }
+  }
+
+  if (Options::saveCfg)
+  {
+    if (Options::username.size() > 0)
+    {
+      config.Root()["username"] = Options::username;
+    }
+    if (Options::password.size() > 0)
+    {
+      config.Root()["password"] = Options::password;
+    }
+    if (Options::applicationId.size() > 0)
+    {
+      config.Root()["application"] = Options::applicationId;
+    }
+    if (Options::endpointId.size() > 0)
+    {
+      config.Root()["endpoint"] = Options::endpointId;
+    }
+    if (Options::logFile.size() > 0)
+    {
+      config.Root()["log"] = Options::logFile;
+    }
+    if (Options::host.size() > 0)
+    {
+      config.Root()["host"] = Options::host;
+    }
+    if (Options::port > 0)
+    {
+      config.Root()["port"] = (uint64_t)Options::port;
+    }
+    config.Save();
+  }
+
+  if (Options::logFile.size() == 0)
+  {
+    logFile = "/var/log/aeres.log";
+  }
+  if (Options::host.size() == 0)
+  {
+    Options::host = "aereslab.com";
+  }
+  if (Options::port == 0)
+  {
+    Options::port = 7900;
   }
 
   switch (Options::command)
