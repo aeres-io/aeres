@@ -85,13 +85,13 @@ std::string Options::host;
 uint16_t Options::port;
 std::string Options::cfgFile;
 std::string Options::logFile;
-aeres::LogLevel Options::logLevel =
+LogLevel Options::logLevel =
 #ifndef DEBUG
-  aeres::LogLevel::INFOMATION;
+  LogLevel::INFOMATION;
 #else
-  aeres::LogLevel::DBG;
+  LogLevel::DBG;
 #endif
-aeres::Action::T Options::action = aeres::Action::None;
+Action::T Options::action = Action::None;
 std::string Options::applicationId;
 std::string Options::endpointId;
 std::string Options::ruleId;
@@ -99,7 +99,6 @@ std::string Options::name;
 std::string Options::value;
 std::string Options::key;
 bool Options::daemon;
-bool Options::saveCfg;
 
 bool Options::Usage(const char * message, ...)
 {
@@ -300,6 +299,7 @@ bool Options::Usage(const char * message, ...)
       printf("  aeres rule                     Manage rules\n");
       printf("  aeres listen                   Start listen service\n");
       printf("  aeres tunnel                   Start tunnel service\n");
+      printf("  aeres saveconfig               Save options to config\n");
       printf("\n");
       printf("Options:\n");
       printf("\n");
@@ -307,7 +307,6 @@ bool Options::Usage(const char * message, ...)
       printf("  -p,--password <password>       Password\n");
       printf("  -h,--host <host>[:port]        Aeres host server\n");
       printf("  -c,--config <config-file>      Config path (/etc/aeres/aeres.conf)\n");
-      printf("  -s,--save                      Save options to config\n");
       printf("  -l,--log <log-file>            Log path (/var/log/aeres.log)\n");
       printf("  -?,--help                      Help\n");
       printf("\n");
@@ -347,6 +346,9 @@ bool Options::Init(int argc, const char **argv)
       case 't': case 'T':
         command = Command::Tunnel;
         break;
+      case 's': case 'S':
+        command = Command::SaveConfig;
+        break;
       default:
         command = Command::Unknown;
         break;
@@ -357,43 +359,43 @@ bool Options::Init(int argc, const char **argv)
   {
     if (strcmp(argv[i], "--add") == 0)
     {
-      action = aeres::Action::Add;
+      action = Action::Add;
     }
     else if (strcmp(argv[i], "--update") == 0)
     {
-      action = aeres::Action::Update;
+      action = Action::Update;
     }
     else if (strcmp(argv[i], "--show") == 0)
     {
-      action = aeres::Action::Show;
+      action = Action::Show;
     }
     else if (strcmp(argv[i], "--list") == 0)
     {
-      action = aeres::Action::List;
+      action = Action::List;
     }
     else if (strcmp(argv[i], "--remove") == 0)
     {
-      action = aeres::Action::Remove;
+      action = Action::Remove;
     }
     else if (strcmp(argv[i], "--remove-all") == 0)
     {
-      action = aeres::Action::RemoveAll;
+      action = Action::RemoveAll;
     }
     else if (strcmp(argv[i], "--get") == 0)
     {
-      action = aeres::Action::Get;
+      action = Action::Get;
     }
     else if (strcmp(argv[i], "--get-all") == 0)
     {
-      action = aeres::Action::GetAll;
+      action = Action::GetAll;
     }
     else if (strcmp(argv[i], "--set") == 0)
     {
-      action = aeres::Action::Set;
+      action = Action::Set;
     }
     else if (strcmp(argv[i], "--del") == 0)
     {
-      action = aeres::Action::Del;
+      action = Action::Del;
     }
     else if (strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--application") == 0)
     {
@@ -439,10 +441,6 @@ bool Options::Init(int argc, const char **argv)
       assert_argument_index(++i, argv[i-1]);
       cfgFile = argv[i];
     }
-    else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--save") == 0)
-    {
-      saveCfg = true;
-    }
     else if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--log") == 0)
     {
       assert_argument_index(++i, argv[i-1]);
@@ -451,7 +449,7 @@ bool Options::Init(int argc, const char **argv)
     else if (strcmp(argv[i], "--log-level") == 0)
     {
       assert_argument_index(++i, argv[i-1]);
-      logLevel = aeres::Log::LogLevelFromInt(atoi(argv[i]));
+      logLevel = Log::LogLevelFromInt(atoi(argv[i]));
     }
     else if (strcmp(argv[i], "-?") == 0 || strcmp(argv[i], "--help") == 0)
     {
@@ -515,7 +513,7 @@ bool Options::Validate()
     }
   }
 
-  if (Options::saveCfg)
+  if (Options::command == Command::SaveConfig)
   {
     if (Options::username.size() > 0)
     {

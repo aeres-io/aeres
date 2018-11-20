@@ -65,7 +65,6 @@ int main(int argc, const char ** argv)
 
   switch (Options::command)
   {
-    default:
     case Command::None:
     {
       printf("TODO: REPL environment\n");
@@ -99,6 +98,11 @@ int main(int argc, const char ** argv)
     {
       AeresTunnel tunnel(Options::endpointId, Options::key);
       res = tunnel.Process();
+      break;
+    }
+    default:
+    case Command::SaveConfig:
+    {
       break;
     }
   }

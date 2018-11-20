@@ -62,7 +62,8 @@ namespace aeres
       Rule = 3,
       Listen = 4,
       Tunnel = 5,
-      Unknown = 6
+      SaveConfig = 6,
+      Unknown = 7
     };
 
     const char * ToString(T value);
@@ -78,8 +79,8 @@ namespace aeres
     static uint16_t port;
     static std::string cfgFile;
     static std::string logFile;
-    static aeres::LogLevel logLevel;
-    static aeres::Action::T action;
+    static LogLevel logLevel;
+    static Action::T action;
     static std::string applicationId;
     static std::string endpointId;
     static std::string ruleId;
@@ -87,7 +88,6 @@ namespace aeres
     static std::string value;
     static std::string key;
     static bool daemon;
-    static bool saveCfg;
 
     static bool Usage(const char * message = nullptr, ...);
     static bool Init(int argc, const char ** argv);
