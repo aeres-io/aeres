@@ -141,8 +141,17 @@ bool AeresApplication::Add(std::string & application)
 
 bool AeresApplication::Remove(std::string & application)
 {
-  // TODO
-  return false;
+  std::string path = "name://Applications/" + application;
+  auto appApi = std::static_pointer_cast<aeres::AeresApplicationApi>(session->CreateObject("Applications", path.c_str(), "Applications"));
+
+  auto result = appApi->Delete();
+
+  if (!result->Wait() || result->HasError())
+  {
+    return false;
+  }
+
+  return result->GetResult();
 }
 
 bool AeresApplication::RemoveAll()

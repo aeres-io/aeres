@@ -43,5 +43,7 @@ namespace aeres
     AsyncResultPtr<Json::Value> GetApplications();
 
     AsyncResultPtr<Json::Value> NewApplication(const char * displayName);
+
+    AsyncResultPtr<bool> Delete();
   };
 }

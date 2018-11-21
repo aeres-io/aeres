@@ -83,4 +83,27 @@ namespace aeres
 
     return rtn ? result : nullptr;
    }
+
+  AsyncResultPtr<bool> AeresApplicationApi::Delete()
+  {
+    AeresObject::CArgs args;
+    auto result = std::make_shared<AsyncResult<bool>>();
+
+    bool rtn = this->Call("Delete", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        if (error || !response.isBool())
+        {
+          result->Complete(false);
+        }
+        else
+        {
+          result->Complete(response.asBool());
+        }
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
 }
