@@ -38,6 +38,17 @@ add_library(
 
   QuicClient.cpp
   QuicClientSession.cpp
+  AsyncResult.cpp
+  Base64Encoder.cpp
+  AeresObject.cpp
+  AeresSession.cpp
+  AeresTypes.cpp
+  Buffer.cpp
+  HttpCookies.cpp
+  HttpRequest.cpp
+  Event.cpp
+  AeresSystemSecurityApi.cpp
+  AeresApplicationApi.cpp
 )
 
 include_directories("../include")
@@ -46,6 +57,15 @@ include_directories("${ROOT_LIBQUIC}/src/quic")
 include_directories("${ROOT_LIBQUIC}/src/quic/gen")
 include_directories("${ROOT_LIBQUIC}/src/quic/third_party/protobuf/src")
 include_directories("${ROOT_LIBQUIC}/src/third_party/boringssl/src/include")
+include_directories("${ROOT_JSONCPP}/src/include")
 
 add_definitions(-DSSL_LIB=\"boringssl.so\")
+
+#if (DEFINED DEBUG_HTTP)
+  add_definitions(-DDEBUG_HTTP)
+#endif (DEFINED DEBUG_HTTP)
+
+if (DEFINED DEBUG_HTTP_RELAY)
+  add_definitions(-DDEBUG_HTTP_RELAY)
+endif (DEFINED DEBUG_HTTP_RELAY)
 

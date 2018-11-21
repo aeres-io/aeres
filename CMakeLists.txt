@@ -31,3 +31,5 @@ project(aeres_root)
 set(ROOT ${PROJECT_SOURCE_DIR})
 
 add_subdirectory(src)
+
+add_definitions(-DDEBUG_HTTP)

@@ -1,5 +1,6 @@
 #include "AeresApplication.h"
 #include "Options.h"
+#include "AeresApplicationApi.h"
 
 namespace aeres {
 
@@ -87,8 +88,27 @@ bool AeresApplication::Process()
 
 bool AeresApplication::List(std::vector<std::string> & applications)
 {
-  // TODO
-  return false;
+  auto appApi = std::static_pointer_cast<aeres::AeresApplicationApi>(session->CreateObject("Applications", "name://Applications", "Applications"));
+
+  auto result = appApi->GetApplications();
+
+  if (!result->Wait() || result->HasError())
+  {
+    return false;
+  }
+
+  auto &jsonArray = result->GetResult();
+  if (jsonArray.isNull())
+  {
+    return false;
+  }
+
+  for(auto &json : jsonArray)
+  {
+    applications.emplace_back(json["Path"].asString());
+  }
+
+  return true;
 }
 
 bool AeresApplication::Show(std::string & application)
@@ -99,8 +119,24 @@ bool AeresApplication::Show(std::string & application)
 
 bool AeresApplication::Add(std::string & application)
 {
-  // TODO
-  return false;
+  auto appApi = std::static_pointer_cast<aeres::AeresApplicationApi>(session->CreateObject("Applications", "name://Applications", "Applications"));
+
+  auto result = appApi->NewApplication(application.c_str());
+
+  if (!result->Wait() || result->HasError())
+  {
+    return false;
+  }
+
+  auto &jsonObj = result->GetResult();
+  if (jsonObj.isNull())
+  {
+    return false;
+  }
+
+  application = jsonObj["Path"].asString();
+
+  return true;
 }
 
 bool AeresApplication::Remove(std::string & application)

@@ -53,5 +53,9 @@ if (NOT DEFINED ROOT_LIBQUIC)
   set(ROOT_LIBQUIC ${ROOT}/src/libquic CACHE PATH "libquic directory" FORCE)
 endif (NOT DEFINED ROOT_LIBQUIC)
 
+if (NOT DEFINED ROOT_JSONCPP)
+  set(ROOT_JSONCPP ${ROOT}/src/jsoncpp CACHE PATH "jsoncpp directory" FORCE)
+endif (NOT DEFINED ROOT_JSONCPP)
+
 # C++
 include(${ROOT}/Cpp.cmake)
