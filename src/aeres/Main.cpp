@@ -61,7 +61,7 @@ int main(int argc, const char ** argv)
   aeres::Log::SetTarget(log);
   aeres::Log::SetDefaultLevel(Options::logLevel);
 
-  std::shared_ptr<AeresSession> session(new AeresSession(Options::host, Options::port));
+  auto session = AeresSession::CreateSession(Options::host.c_str());
 
   switch (Options::command)
   {
@@ -108,5 +108,6 @@ int main(int argc, const char ** argv)
     fclose(log);
   }
 
+  AeresSession::Stop();
   return res;
 }
