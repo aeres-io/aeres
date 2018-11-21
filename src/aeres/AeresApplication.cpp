@@ -1,6 +1,7 @@
 #include "AeresApplication.h"
 #include "Options.h"
 #include "AeresApplicationApi.h"
+#include "AeresUserApi.h"
 
 namespace aeres {
 
@@ -17,12 +18,16 @@ bool AeresApplication::Process()
     {
       case Action::List:
       {
-        std::vector<std::string> applications;
+        std::vector<std::pair<std::string, std::string>> applications;
         if (List(applications))
         {
+          if(applications.size())
+          {
+            printf("%-20s%-32s\n", "DisplayName", " AppID");
+          }
           for (auto itr = applications.begin(); itr != applications.end(); itr++)
           {
-            printf("%s\n", (*itr).c_str());
+            printf("%-20s%-32s\n", (*itr).first.c_str(), (*itr).second.c_str());
           }
           return true;
         }
@@ -86,11 +91,12 @@ bool AeresApplication::Process()
   }
 }
 
-bool AeresApplication::List(std::vector<std::string> & applications)
+bool AeresApplication::List(std::vector<std::pair<std::string,std::string>> & applications)
 {
-  auto appApi = std::static_pointer_cast<aeres::AeresApplicationApi>(session->CreateObject("Applications", "name://Applications", "Applications"));
+  std::string path = "name://Users/" + Options::username;
+  auto userApi = std::static_pointer_cast<aeres::AeresApplicationApi>(session->CreateObject("User", path.c_str(), "User"));
 
-  auto result = appApi->GetApplications();
+  auto result = userApi->GetApplications();
 
   if (!result->Wait() || result->HasError())
   {
@@ -105,7 +111,7 @@ bool AeresApplication::List(std::vector<std::string> & applications)
 
   for(auto &json : jsonArray)
   {
-    applications.emplace_back(json["Path"].asString());
+    applications.emplace_back(std::make_pair(json["Properties"]["DisplayName"].asString(), json["Properties"]["AppId"].asString()));
   }
 
   return true;
@@ -135,6 +141,12 @@ bool AeresApplication::Add(std::string & application)
   }
 
   application = jsonObj["Path"].asString();
+
+  std::string prefix = "name://Applications/";
+  if(application.find(prefix) != std::string::npos)
+  {
+    application.erase(0,prefix.length());
+  }
 
   return true;
 }

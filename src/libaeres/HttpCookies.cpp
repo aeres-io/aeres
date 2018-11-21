@@ -130,7 +130,6 @@ namespace aeres
 
   void HttpCookies::SetToken(const char * name, const char * value, const char *domain)
   {
-    printf("SetTok:%s, %s\n",name,value);
     WriteLock _(mutex);
     __Delete(name, domain, NULL);
     cookies.push_back(new Cookie(name, value, domain, "", 0, 0, false, false));

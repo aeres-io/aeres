@@ -14,7 +14,7 @@ public:
   AeresApplication(std::shared_ptr<AeresSession> session);
 
   bool Process();
-  bool List(std::vector<std::string> & applications);
+  bool List(std::vector<std::pair<std::string,std::string>> & applications);
   bool Show(std::string & application);
   bool Add(std::string & application);
   bool Remove(std::string & application);

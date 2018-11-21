@@ -49,6 +49,7 @@ add_library(
   Event.cpp
   AeresSystemSecurityApi.cpp
   AeresApplicationApi.cpp
+  AeresUserApi.cpp
 )
 
 include_directories("../include")
@@ -61,9 +62,9 @@ include_directories("${ROOT_JSONCPP}/src/include")
 
 add_definitions(-DSSL_LIB=\"boringssl.so\")
 
-#if (DEFINED DEBUG_HTTP)
+if (DEFINED DEBUG_HTTP)
   add_definitions(-DDEBUG_HTTP)
-#endif (DEFINED DEBUG_HTTP)
+endif (DEFINED DEBUG_HTTP)
 
 if (DEFINED DEBUG_HTTP_RELAY)
   add_definitions(-DDEBUG_HTTP_RELAY)
