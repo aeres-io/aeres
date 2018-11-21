@@ -541,7 +541,7 @@ bool Options::Validate()
     }
     if (Options::port > 0)
     {
-      config.Root()["port"] = (uint64_t)Options::port;
+      config.Root()["port"] = Json::UInt(Options::port);
     }
     config.Save();
   }
