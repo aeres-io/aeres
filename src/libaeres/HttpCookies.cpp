@@ -128,13 +128,6 @@ namespace aeres
     cookies.push_back(new Cookie(name, value, domain, path, expires, maxAge, secure, httpOnly));
   }
 
-  void HttpCookies::SetToken(const char * name, const char * value, const char *domain)
-  {
-    WriteLock _(mutex);
-    __Delete(name, domain, NULL);
-    cookies.push_back(new Cookie(name, value, domain, "", 0, 0, false, false));
-  }
-
   void HttpCookies::Delete(const char * name, const char * domain, const char * path)
   {
     WriteLock _(mutex);

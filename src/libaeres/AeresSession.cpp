@@ -211,14 +211,12 @@ namespace aeres
 
     if(!result->Wait() || result->HasError())
     {
-      config->Cookies().SetToken("st", "");
       return false;
     }
 
-    auto &st = result->GetResult();
-    config->Cookies().SetToken("st", st.c_str());
+    bool stFound = config->Cookies().FindFirst("st", base.c_str(), "/") != config->Cookies().End();
 
-    return true;
+    return stFound;
   }
 
   uint32_t AeresSession::GetTimeout() const

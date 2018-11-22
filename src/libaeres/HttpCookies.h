@@ -77,7 +77,6 @@ namespace aeres
 
     void Set(const char * rawValue, std::string & actualDomain, std::string & actualPath);
     void Set(const char * name, const char * value, const char * domain, const char * path, time_t expires, uint32_t maxAge, bool secure, bool httpOnly);
-    void SetToken(const char * name, const char * value, const char * domain = "");
     void Delete(const char * name, const char * domain, const char * path);
 
     Iterator FindFirst(const char * name, const char * domain, const char * path);
