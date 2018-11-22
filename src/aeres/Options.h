@@ -76,6 +76,7 @@ namespace aeres
     static std::string username;
     static std::string password;
     static std::string host;
+    static std::string portal;
     static uint16_t port;
     static std::string cfgFile;
     static std::string logFile;

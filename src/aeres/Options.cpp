@@ -82,6 +82,7 @@ Command::T Options::command = Command::None;
 std::string Options::username;
 std::string Options::password;
 std::string Options::host;
+std::string Options::portal;
 uint16_t Options::port;
 std::string Options::cfgFile;
 std::string Options::logFile;
@@ -141,6 +142,7 @@ bool Options::Usage(const char * message, ...)
       printf("Options:\n");
       printf("\n");
       printf("  -a,--application <application>  Specify the application ID\n");
+      printf("  -w,--web <web>[:<port>]       Aeres web portal (optional)\n");
       printf("\n");
       break;
     case Command::Endpoint:
@@ -264,6 +266,7 @@ bool Options::Usage(const char * message, ...)
       printf("  -a,--application <application>  Application ID (required)\n");
       printf("  -e,--endpoint <endpoint>        Endpoint ID (required)\n");
       printf("  -h,--host <host>[:<port>]       Aeres Host (optional)\n");
+      printf("  -w,--web <web>[:<port>]       Aeres web portal (optional)\n");
       printf("\n");
       break;
     case Command::Tunnel:
@@ -306,6 +309,7 @@ bool Options::Usage(const char * message, ...)
       printf("  -u,--username <user>           Username / Email address\n");
       printf("  -p,--password <password>       Password\n");
       printf("  -h,--host <host>[:port]        Aeres host server\n");
+      printf("  -w,--web <web>[:<port>]       Aeres web portal (optional)\n");
       printf("  -c,--config <config-file>      Config path (/etc/aeres/aeres.conf)\n");
       printf("  -l,--log <log-file>            Log path (/var/log/aeres.log)\n");
       printf("  -?,--help                      Help\n");
@@ -427,6 +431,11 @@ bool Options::Init(int argc, const char **argv)
       assert_argument_index(++i, argv[i-1]);
       host = argv[i];
     }
+    else if (strcmp(argv[i], "-w") == 0 || strcmp(argv[i], "--web") == 0)
+    {
+      assert_argument_index(++i, argv[i-1]);
+      portal = argv[i];
+    }
     else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--daemon") == 0)
     {
       daemon = true;
@@ -507,6 +516,10 @@ bool Options::Validate()
     {
       Options::host = config.Root()["host"].asString();
     }
+    if (Options::portal.size() == 0 && config.Root().isMember("web"))
+    {
+      Options::portal = config.Root()["web"].asString();
+    }
     if(Options::port == 0 && config.Root().isMember("port"))
     {
       Options::port = config.Root()["port"].asUInt();
@@ -539,6 +552,10 @@ bool Options::Validate()
     {
       config.Root()["host"] = Options::host;
     }
+    if (Options::portal.size() > 0)
+    {
+      config.Root()["web"] = Options::portal;
+    }
     if (Options::port > 0)
     {
       config.Root()["port"] = Json::UInt(Options::port);
@@ -553,6 +570,10 @@ bool Options::Validate()
   if (Options::host.size() == 0)
   {
     Options::host = "aereslab.com";
+  }
+  if (Options::portal.size() == 0)
+  {
+    Options::portal = "https://aereslab.com";
   }
   if (Options::port == 0)
   {
