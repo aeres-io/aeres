@@ -23,11 +23,11 @@ bool AeresApplication::Process()
         {
           if(applications.size())
           {
-            printf("%-20s%-32s\n", "DisplayName", "AppID");
+            printf("%-40s%-32s\n", "AppID", "Description");
           }
           for (auto itr = applications.begin(); itr != applications.end(); itr++)
           {
-            printf("%-20s%-32s\n", (*itr).first.c_str(), (*itr).second.c_str());
+            printf("%-40s%-32s\n", (*itr).first.c_str(), (*itr).second.c_str());
           }
           return true;
         }
@@ -111,7 +111,7 @@ bool AeresApplication::List(std::vector<std::pair<std::string,std::string>> & ap
 
   for(auto &json : jsonArray)
   {
-    applications.emplace_back(std::make_pair(json["Properties"]["DisplayName"].asString(), json["Properties"]["AppId"].asString()));
+    applications.emplace_back(std::make_pair(json["Properties"]["AppId"].asString(), json["Properties"]["Description"].asString()));
   }
 
   return true;

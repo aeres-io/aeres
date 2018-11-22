@@ -44,7 +44,7 @@ namespace aeres
 
     AsyncResultPtr<Json::Value> NewApplication(const char * displayName);
 
-    AsyncResultPtr<Json::Value> NewEndpoint(const char * description = nullptr);
+    AsyncResultPtr<Json::Value> NewEndpoint(const char * endpointId = nullptr, const char * description = nullptr);
 
     AsyncResultPtr<bool> Delete();
   };

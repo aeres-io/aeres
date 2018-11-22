@@ -58,10 +58,16 @@ namespace aeres
     return rtn ? result : nullptr;
   }
 
-  AsyncResultPtr<Json::Value> AeresApplicationApi::NewEndpoint(const char * description)
+  AsyncResultPtr<Json::Value> AeresApplicationApi::NewEndpoint(const char * endpointId, const char * description)
   {
    AeresObject::CArgs args;
-   if(description)
+
+   if(endpointId && endpointId != "")
+   {
+     args["endpointId"] = std::string(endpointId);
+   }
+
+   if(description && description != "")
    {
      args["description"] = std::string(description);
    }

@@ -25,11 +25,11 @@ bool AeresEndpoint::Process()
         {
           if(endpoints.size())
           {
-            printf("%-20s%-32s\n", "EndpointID", "Description");
+            printf("%-40s%-50s\n", "EndpointID", "Description");
           }
           for (auto &it : endpoints)
           {
-            printf("%-20s%-32s\n", it.first.c_str(), it.second.c_str());
+            printf("%-40s%-50s\n", it.first.c_str(), it.second.c_str());
           }
           return true;
         }
