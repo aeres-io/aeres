@@ -15,11 +15,22 @@ AeresListener::AeresListener(std::string & applicationId, std::string & endpoint
 
 bool AeresListener::Process()
 {
+  std::string host;
+  size_t pos = Options::host.find("://");
+  if (pos != std::string::npos)
+  {
+    host = Options::host.substr(pos + 3);
+  }
+  else
+  {
+    host = Options::host;
+  }
+
   while (true)
   {
     aeres::Log::Information("Starting relay client...");
 
-    aeres::client::QuicClient client{Options::applicationId, Options::host, Options::port};
+    aeres::client::QuicClient client{Options::applicationId, host, Options::port};
 
     if (!client.Start())
     {
