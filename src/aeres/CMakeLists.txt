@@ -24,7 +24,7 @@
 # =============================================================================
 #
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.3)
 
 project(aeres)
 
@@ -54,10 +54,7 @@ include_directories("${ROOT_LIBQUIC}/src")
 include_directories("${ROOT_LIBQUIC}/src/quic")
 include_directories("${ROOT_LIBQUIC}/src/quic/gen")
 include_directories("${ROOT_LIBQUIC}/src/quic/third_party/protobuf/src")
-include_directories("${ROOT_LIBQUIC}/src/third_party/boringssl/src/include")
 include_directories("${ROOT_JSONCPP}/src/include")
-
-add_definitions(-DSSL_LIB=\"boringssl.so\")
 
 aeres_lib(aeres libaeres-client ${LIBDIR}/libaeres-client.a)
 aeres_lib(aeres libaeres-quic ${LIBDIR}/libaeres-quic.a)
@@ -65,8 +62,8 @@ aeres_lib(aeres libaeres-common ${LIBDIR}/libaeres-common.a)
 aeres_lib(aeres jsoncpp ${ROOT_JSONCPP}/out/lib/libjsoncpp.a)
 
 aeres_sys_lib(aeres curl)
+aeres_sys_lib(aeres ssl)
 aeres_sys_lib(aeres quic)
-aeres_sys_lib(aeres boringssl)
 aeres_sys_lib(aeres dl)
 aeres_sys_lib(aeres z)
 
