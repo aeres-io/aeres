@@ -18,34 +18,42 @@
   SOFTWARE.
 */
 
-#pragma once
-
-#include <stdint.h>
-#include <stdlib.h>
-#include <memory>
-#include <string>
-#include "AeresObject.h"
-#include "AsyncResult.h"
-
-#ifdef _WIN32
-#include <basetsd.h>
-typedef SSIZE_T ssize_t;
-#endif
+#include <assert.h>
+#include <json/json.h>
+#include "AeresTypes.h"
+#include "Base64Encoder.h"
+#include "AeresEndpointApi.h"
 
 namespace aeres
 {
-  class AeresApplicationApi : public AeresObject
+  AERES_TYPE_REG(Endpoint, AeresEndpointApi);
+
+
+  AeresEndpointApi::AeresEndpointApi(const char * base, const char * name, const char * path, const char * type)
+    : AeresObject(base, name, path, type)
   {
-  public:
+  }
 
-    AeresApplicationApi(const char * base, const char * name, const char * path, const char * type);
+  AsyncResultPtr<bool> AeresEndpointApi::Delete()
+  {
+    AeresObject::CArgs args;
+    auto result = std::make_shared<AsyncResult<bool>>();
 
-    AsyncResultPtr<Json::Value> GetEndpoints();
+    bool rtn = this->Call("Delete", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        if (error || !response.isBool())
+        {
+          result->Complete(false);
+        }
+        else
+        {
+          result->Complete(response.asBool());
+        }
+      }
+    );
 
-    AsyncResultPtr<Json::Value> NewApplication(const char * displayName);
-
-    AsyncResultPtr<Json::Value> NewEndpoint(const char * description = nullptr);
-
-    AsyncResultPtr<bool> Delete();
-  };
+    return rtn ? result : nullptr;
+  }
 }

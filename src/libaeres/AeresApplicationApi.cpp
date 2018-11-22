@@ -35,12 +35,12 @@ namespace aeres
   }
 
 
-  AsyncResultPtr<Json::Value> AeresApplicationApi::GetApplications()
+  AsyncResultPtr<Json::Value> AeresApplicationApi::GetEndpoints()
   {
     AeresObject::CArgs args;
 
     auto result = std::make_shared<AsyncResult<Json::Value>>();
-    bool rtn = this->Call("GetApplications", args,
+    bool rtn = this->Call("GetEndpoints", args,
       [result](Json::Value & response, bool error)
       {
         result->SetError(error);
@@ -58,31 +58,59 @@ namespace aeres
     return rtn ? result : nullptr;
   }
 
+  AsyncResultPtr<Json::Value> AeresApplicationApi::NewEndpoint(const char * description)
+  {
+   AeresObject::CArgs args;
+   if(description)
+   {
+     args["description"] = std::string(description);
+   }
+
+   auto result = std::make_shared<AsyncResult<Json::Value>>();
+   bool rtn = this->Call("NewEndpoint", args,
+     [result](Json::Value & response, bool error)
+     {
+       result->SetError(error);
+       if (error || !response.isObject())
+       {
+         result->Complete(Json::Value());
+       }
+       else
+       {
+         result->Complete(std::move(response));
+       }
+     }
+   );
+
+   return rtn ? result : nullptr;
+  }
+
+
    AsyncResultPtr<Json::Value> AeresApplicationApi::NewApplication(const char * displayName)
    {
-    assert(displayName);
+   assert(displayName);
 
-    AeresObject::CArgs args;
-    args["displayName"] = std::string(displayName);
+   AeresObject::CArgs args;
+   args["displayName"] = std::string(displayName);
 
-    auto result = std::make_shared<AsyncResult<Json::Value>>();
-    bool rtn = this->Call("NewApplication", args,
-      [result](Json::Value & response, bool error)
-      {
-        result->SetError(error);
-        if (error || !response.isObject())
-        {
-          result->Complete(Json::Value());
-        }
-        else
-        {
-          result->Complete(std::move(response));
-        }
-      }
-    );
+   auto result = std::make_shared<AsyncResult<Json::Value>>();
+   bool rtn = this->Call("NewApplication", args,
+     [result](Json::Value & response, bool error)
+     {
+       result->SetError(error);
+       if (error || !response.isObject())
+       {
+         result->Complete(Json::Value());
+       }
+       else
+       {
+         result->Complete(std::move(response));
+       }
+     }
+   );
 
-    return rtn ? result : nullptr;
-   }
+   return rtn ? result : nullptr;
+  }
 
   AsyncResultPtr<bool> AeresApplicationApi::Delete()
   {

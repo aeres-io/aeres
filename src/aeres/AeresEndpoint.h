@@ -15,7 +15,7 @@ public:
   AeresEndpoint(std::shared_ptr<AeresSession> session, std::string & application);
 
   bool Process();
-  bool List(std::vector<std::string> & endpoints);
+  bool List(std::vector<std::pair<std::string, std::string>> & endpoints);
   bool Show(std::string & endpoint);
   bool Add(std::string & endpoint);
   bool Remove(std::string & endpoint);

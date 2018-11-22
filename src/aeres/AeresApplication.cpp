@@ -23,7 +23,7 @@ bool AeresApplication::Process()
         {
           if(applications.size())
           {
-            printf("%-20s%-32s\n", "DisplayName", " AppID");
+            printf("%-20s%-32s\n", "DisplayName", "AppID");
           }
           for (auto itr = applications.begin(); itr != applications.end(); itr++)
           {
@@ -94,7 +94,7 @@ bool AeresApplication::Process()
 bool AeresApplication::List(std::vector<std::pair<std::string,std::string>> & applications)
 {
   std::string path = "name://Users/" + Options::username;
-  auto userApi = std::static_pointer_cast<aeres::AeresApplicationApi>(session->CreateObject("User", path.c_str(), "User"));
+  auto userApi = std::static_pointer_cast<aeres::AeresUserApi>(session->CreateObject("User", path.c_str(), "User"));
 
   auto result = userApi->GetApplications();
 
