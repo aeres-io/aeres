@@ -142,7 +142,7 @@ bool Options::Usage(const char * message, ...)
       printf("Options:\n");
       printf("\n");
       printf("  -a,--application <application>  Specify the application ID\n");
-      printf("  -w,--web <web>[:<port>]       Aeres web portal (optional)\n");
+//      printf("  -w,--web <web>[:<port>]         Aeres web portal (optional)\n");
       printf("\n");
       break;
     case Command::Endpoint:
@@ -266,7 +266,7 @@ bool Options::Usage(const char * message, ...)
       printf("  -a,--application <application>  Application ID (required)\n");
       printf("  -e,--endpoint <endpoint>        Endpoint ID (required)\n");
       printf("  -h,--host <host>[:<port>]       Aeres Host (optional)\n");
-      printf("  -w,--web <web>[:<port>]       Aeres web portal (optional)\n");
+//      printf("  -w,--web <web>[:<port>]         Aeres web portal (optional)\n");
       printf("\n");
       break;
     case Command::Tunnel:
@@ -309,7 +309,7 @@ bool Options::Usage(const char * message, ...)
       printf("  -u,--username <user>           Username / Email address\n");
       printf("  -p,--password <password>       Password\n");
       printf("  -h,--host <host>[:port]        Aeres host server\n");
-      printf("  -w,--web <web>[:<port>]       Aeres web portal (optional)\n");
+//      printf("  -w,--web <web>[:<port>]        Aeres web portal (optional)\n");
       printf("  -c,--config <config-file>      Config path (/etc/aeres/aeres.conf)\n");
       printf("  -l,--log <log-file>            Log path (/var/log/aeres.log)\n");
       printf("  -?,--help                      Help\n");
@@ -569,7 +569,7 @@ bool Options::Validate()
   }
   if (Options::host.size() == 0)
   {
-    Options::host = "aereslab.com";
+    Options::host = "https://aereslab.com";
   }
   if (Options::portal.size() == 0)
   {
