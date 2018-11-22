@@ -28,6 +28,8 @@
 #include <thread>
 #include <chrono>
 
+#include <openssl/ssl.h>
+
 #include <aeres/Log.h>
 #include "AeresSession.h"
 #include "AeresApplication.h"
@@ -42,6 +44,8 @@ using namespace aeres;
 
 int main(int argc, const char ** argv)
 {
+  SSL_library_init();
+
   int res = 0;
 
   Options::Init(argc, argv);

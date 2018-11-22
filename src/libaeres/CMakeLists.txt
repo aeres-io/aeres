@@ -24,7 +24,7 @@
 # =============================================================================
 #
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.3)
 
 project(libaeres-client)
 
@@ -36,8 +36,6 @@ include(${ROOT}/Config.cmake)
 add_library(
   aeres-client STATIC
 
-  QuicClient.cpp
-  QuicClientSession.cpp
   AsyncResult.cpp
   Base64Encoder.cpp
   AeresObject.cpp
@@ -54,14 +52,7 @@ add_library(
 )
 
 include_directories("../include")
-include_directories("${ROOT_LIBQUIC}/src")
-include_directories("${ROOT_LIBQUIC}/src/quic")
-include_directories("${ROOT_LIBQUIC}/src/quic/gen")
-include_directories("${ROOT_LIBQUIC}/src/quic/third_party/protobuf/src")
-include_directories("${ROOT_LIBQUIC}/src/third_party/boringssl/src/include")
 include_directories("${ROOT_JSONCPP}/src/include")
-
-add_definitions(-DSSL_LIB=\"boringssl.so\")
 
 if (DEFINED DEBUG_HTTP)
   add_definitions(-DDEBUG_HTTP)

@@ -24,7 +24,7 @@
 # =============================================================================
 #
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.3)
 
 project(libaeres-quic)
 
@@ -36,6 +36,8 @@ include(${ROOT}/Config.cmake)
 add_library(
   aeres-quic STATIC
 
+  QuicClient.cpp
+  QuicClientSession.cpp
   QuicConnection.cpp
 )
 
@@ -46,5 +48,4 @@ include_directories("${ROOT_LIBQUIC}/src/quic/gen")
 include_directories("${ROOT_LIBQUIC}/src/quic/third_party/protobuf/src")
 include_directories("${ROOT_LIBQUIC}/src/third_party/boringssl/src/include")
 
-add_definitions(-DSSL_LIB=\"boringssl.so\")
 
