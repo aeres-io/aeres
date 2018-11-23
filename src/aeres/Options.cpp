@@ -160,8 +160,7 @@ bool Options::Usage(const char * message, ...)
       printf("\n");
       printf("  Manages application endpoints\n");
       printf("\n");
-      printf("  Note: these actions require user authentication (-u and -p) as\n");
-      printf("        well as a valid application ID (-a)\n");
+      printf("  Note: these actions require user authentication (-u and -p)\n");
       printf("\n");
       printf("Actions:\n");
       printf("\n");
