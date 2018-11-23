@@ -176,14 +176,36 @@ bool AeresEndpointCli::GetAll(std::string & endpoint)
 
 bool AeresEndpointCli::Get(std::string & endpoint, std::string & name)
 {
-  // TODO
-  return false;
+  std::string path = "name://Endpoints/" + endpoint;
+  auto epApi = std::static_pointer_cast<AeresEndpointApi>(session->CreateObject("Endpoints", path.c_str(), "Endpoints"));
+
+  bool res = false;
+
+  if (name == "Description")
+  {
+    auto result = epApi->GetDescription();
+    res = result->Wait() && !result->HasError();
+    std::cout << result->GetResult() << std::endl;
+  }
+
+  return res;
 }
 
 bool AeresEndpointCli::Set(std::string & endpoint, std::string & name, std::string & value)
 {
-  // TODO
-  return false;
+  std::string path = "name://Endpoints/" + endpoint;
+  auto epApi = std::static_pointer_cast<AeresEndpointApi>(session->CreateObject("Endpoints", path.c_str(), "Endpoints"));
+
+  bool res = false;
+
+  if (name == "Description")
+  {
+    auto result = epApi->SetDescription(value);
+    res = result->Wait() && !result->HasError();
+    std::cout << result->GetResult() << std::endl;
+  }
+
+  return res;
 }
 
 bool AeresEndpointCli::Del(std::string & endpoint, std::string & name)
