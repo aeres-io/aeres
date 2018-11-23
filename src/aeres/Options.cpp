@@ -192,7 +192,7 @@ bool Options::Usage(const char * message, ...)
       printf("  Manages application endpoint rules\n");
       printf("\n");
       printf("  Note: these actions require user authentication (-u and -p) as\n");
-      printf("        well as a valid application ID (-a) and endpoint ID (-e)\n");
+      printf("        well as a valid endpoint ID (-e)\n");
       printf("\n");
       printf("Actions:\n");
       printf("\n");
@@ -681,10 +681,6 @@ bool Options::Validate()
       if (Options::password.size() == 0)
       {
         Usage("Error: missing password\n");
-      }
-      if (Options::applicationId.size() == 0)
-      {
-        Usage("Error: missing application\n");
       }
       if (Options::endpointId.size() == 0)
       {

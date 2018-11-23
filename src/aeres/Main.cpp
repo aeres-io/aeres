@@ -34,7 +34,7 @@
 #include "AeresSession.h"
 #include "AeresApplicationCli.h"
 #include "AeresEndpointCli.h"
-#include "AeresRule.h"
+#include "AeresRuleCli.h"
 #include "AeresListener.h"
 #include "AeresTunnel.h"
 
@@ -87,7 +87,7 @@ int main(int argc, const char ** argv)
     }
     case Command::Rule:
     {
-      AeresRule rule(session, Options::applicationId, Options::endpointId);
+      AeresRuleCli rule(session, Options::applicationId, Options::endpointId);
       res = rule.Process();
       break;
     }

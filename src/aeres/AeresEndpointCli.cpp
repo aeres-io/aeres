@@ -97,7 +97,7 @@ bool AeresEndpointCli::Add(const char * description)
   std::string path = "name://Applications/" + Options::applicationId;
   auto appApi = std::static_pointer_cast<aeres::AeresApplicationApi>(session->CreateObject("Applications", path.c_str(), "Applications"));
 
-  auto result = appApi->NewEndpoint();
+  auto result = appApi->NewEndpoint(nullptr, description);
 
   if (!result->Wait() || result->HasError())
   {

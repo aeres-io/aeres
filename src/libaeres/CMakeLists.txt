@@ -48,6 +48,7 @@ add_library(
   AeresSystemSecurityApi.cpp
   AeresApplicationApi.cpp
   AeresEndpointApi.cpp
+  AeresRuleApi.cpp
   AeresUserApi.cpp
 )
 

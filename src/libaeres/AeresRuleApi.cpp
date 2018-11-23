@@ -22,19 +22,19 @@
 #include <json/json.h>
 #include "AeresTypes.h"
 #include "Base64Encoder.h"
-#include "AeresEndpointApi.h"
+#include "AeresRuleApi.h"
 
 namespace aeres
 {
-  AERES_TYPE_REG(Endpoint, AeresEndpointApi);
+  AERES_TYPE_REG(Rule, AeresRuleApi);
 
 
-  AeresEndpointApi::AeresEndpointApi(const char * base, const char * name, const char * path, const char * type)
+  AeresRuleApi::AeresRuleApi(const char * base, const char * name, const char * path, const char * type)
     : AeresObject(base, name, path, type)
   {
   }
 
-  AsyncResultPtr<Json::Value> AeresEndpointApi::GetProperties()
+  AsyncResultPtr<Json::Value> AeresRuleApi::GetProperties()
   {
     AeresObject::CArgs args;
 
@@ -51,7 +51,7 @@ namespace aeres
   }
 
 
-  AsyncResultPtr<Json::Value> AeresEndpointApi::GetDescription()
+  AsyncResultPtr<Json::Value> AeresRuleApi::GetDescription()
   {
     AeresObject::CArgs args;
 
@@ -68,7 +68,7 @@ namespace aeres
   }
 
 
-  AsyncResultPtr<Json::Value> AeresEndpointApi::SetDescription(std::string & value)
+  AsyncResultPtr<Json::Value> AeresRuleApi::SetDescription(std::string & value)
   {
     AeresObject::CArgs args;
     args["value"] = value;
@@ -86,7 +86,7 @@ namespace aeres
   }
 
 
-  AsyncResultPtr<bool> AeresEndpointApi::Delete()
+  AsyncResultPtr<bool> AeresRuleApi::Delete()
   {
     AeresObject::CArgs args;
     auto result = std::make_shared<AsyncResult<bool>>();
@@ -102,42 +102,4 @@ namespace aeres
     return rtn ? result : nullptr;
   }
 
-  AsyncResultPtr<Json::Value> AeresEndpointApi::GetRules()
-  {
-    AeresObject::CArgs args;
-
-    auto result = std::make_shared<AsyncResult<Json::Value>>();
-    bool rtn = this->Call("GetRules", args,
-      [result](Json::Value & response, bool error)
-      {
-        result->SetError(error);
-        result->Complete(error || !response.isArray() ? Json::Value() : std::move(response));
-      }
-    );
-
-    return rtn ? result : nullptr;
-  }
-
-  AsyncResultPtr<Json::Value> AeresEndpointApi::NewRule(const std::string & action, const std::string & domain, const std::string & port, const std::string & protocol)
-  {
-    AeresObject::CArgs args;
-    Json::Value value;
-    value["Action"] = action;
-    value["Domain"] = domain;
-    value["Port"] = port;
-    value["Protocol"] = protocol;
-
-    args["spec"] = value;
-
-    auto result = std::make_shared<AsyncResult<Json::Value>>();
-    bool rtn = this->Call("NewRule", args,
-      [result](Json::Value & response, bool error)
-      {
-        result->SetError(error);
-        result->Complete(error || !response.isObject() ? Json::Value() : std::move(response));
-      }
-    );
-
-    return rtn ? result : nullptr;
-  }
 }

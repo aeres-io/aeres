@@ -44,14 +44,7 @@ namespace aeres
       [result](Json::Value & response, bool error)
       {
         result->SetError(error);
-        if (error)
-        {
-          result->Complete(Json::Value());
-        }
-        else
-        {
-          result->Complete(std::move(response));
-        }
+        result->Complete(error ? Json::Value() : std::move(response));
       }
     );
 
