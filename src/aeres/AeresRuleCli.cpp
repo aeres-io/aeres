@@ -94,6 +94,12 @@ bool AeresRuleCli::List()
 
 bool AeresRuleCli::Add(const char * spec)
 {
+  if(spec == nullptr)
+  {
+    std::cout<<"Invalid spec"<<std::endl;
+    return false;
+  }
+
   std::vector<std::string> tokens;
   std::istringstream tokenStream(spec);
   std::string token;
