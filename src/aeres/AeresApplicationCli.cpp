@@ -105,8 +105,6 @@ bool AeresApplicationCli::Add(const char * description)
     return false;
   }
 
-  std::cout << jsonObj;
-
   auto application = jsonObj["Path"].asString();
 
   auto applicationId = application.substr(20);
