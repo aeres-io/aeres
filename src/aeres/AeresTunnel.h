@@ -9,10 +9,9 @@ class AeresTunnel
 {
 private:
   std::string endpointId;
-  std::string key;
 
 public:
-  AeresTunnel(std::string & endpointId, std::string & key);
+  AeresTunnel(std::string & endpointId);
 
   bool Process();
 };

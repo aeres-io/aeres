@@ -26,6 +26,7 @@
 
 #include <string>
 #include <stdint.h>
+#include <vector>
 
 #include <aeres/Log.h>
 
@@ -85,9 +86,10 @@ namespace aeres
     static std::string applicationId;
     static std::string endpointId;
     static std::string ruleId;
-    static std::string name;
-    static std::string value;
     static std::string key;
+    static std::vector<std::string> args;
+    static std::string arg1;
+    static std::string arg2;
     static bool daemon;
 
     static bool Usage(const char * message = nullptr, ...);

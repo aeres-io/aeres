@@ -96,9 +96,10 @@ Action::T Options::action = Action::None;
 std::string Options::applicationId;
 std::string Options::endpointId;
 std::string Options::ruleId;
-std::string Options::name;
-std::string Options::value;
 std::string Options::key;
+std::vector<std::string> Options::args;
+std::string Options::arg1;
+std::string Options::arg2;
 bool Options::daemon;
 
 bool Options::Usage(const char * message, ...)
@@ -361,7 +362,19 @@ bool Options::Init(int argc, const char **argv)
 
   for (; i < argc; ++i)
   {
-    if (strcmp(argv[i], "--add") == 0)
+    if (argv[i][0] != '-')
+    {
+      args.push_back(argv[i]);
+      if (args.size() == 1)
+      {
+        arg1 = argv[i];
+      }
+      else if (args.size() == 2)
+      {
+        arg2 = argv[i];
+      }
+    }
+    else if (strcmp(argv[i], "--add") == 0)
     {
       action = Action::Add;
     }
@@ -598,13 +611,21 @@ bool Options::Validate()
         case Action::None:
         case Action::Unknown:
           Usage("Error: missing action\n");
+        case Action::Set:
+          if (args.size() < 2)
+          {
+            Usage("Error: missing argument\n");
+          }
+        case Action::Get:
+        case Action::Del:
+          if (args.size() < 1)
+          {
+            Usage("Error: missing argument\n");
+          }
         case Action::Remove:
         case Action::Update:
         case Action::Show:
         case Action::GetAll:
-        case Action::Get:
-        case Action::Set:
-        case Action::Del:
           if (Options::applicationId.size() == 0)
           {
             Usage("Error: missing application\n");
@@ -630,13 +651,21 @@ bool Options::Validate()
         case Action::None:
         case Action::Unknown:
           Usage("Error: missing action\n");
+        case Action::Set:
+          if (args.size() < 2)
+          {
+            Usage("Error: missing argument\n");
+          }
+        case Action::Get:
+        case Action::Del:
+          if (args.size() < 1)
+          {
+            Usage("Error: missing argument\n");
+          }
         case Action::Remove:
         case Action::Update:
         case Action::Show:
         case Action::GetAll:
-        case Action::Get:
-        case Action::Set:
-        case Action::Del:
           if (Options::endpointId.size() == 0)
           {
             Usage("Error: missing endpoint\n");
@@ -666,18 +695,25 @@ bool Options::Validate()
         case Action::None:
         case Action::Unknown:
           Usage("Error: missing action\n");
+        case Action::Set:
+          if (args.size() < 2)
+          {
+            Usage("Error: missing argument\n");
+          }
+        case Action::Get:
+        case Action::Del:
+          if (args.size() < 1)
+          {
+            Usage("Error: missing argument\n");
+          }
         case Action::Remove:
         case Action::Update:
         case Action::Show:
         case Action::GetAll:
-        case Action::Get:
-        case Action::Set:
-        case Action::Del:
           if (Options::ruleId.size() == 0)
           {
             Usage("Error: missing rule\n");
           }
-          break;
       }
       return true;
     case Command::Listen:
