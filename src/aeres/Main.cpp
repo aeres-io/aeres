@@ -85,7 +85,10 @@ int main(int argc, const char ** argv)
       while (true)
       {
         std::string line;
-        line = readline("> ");
+        char * buf = readline("> ");
+        add_history(buf);
+        line = buf;
+        free(buf);
         if (line == "quit")
         {
           break;
