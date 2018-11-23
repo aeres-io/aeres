@@ -206,6 +206,11 @@ namespace aeres
 
   bool AeresSession::Login(std::string & username, std::string & password)
   {
+    if (username == this->username && password == this->password && config->Cookies().FindFirst("st", base.c_str(), "/") != config->Cookies().End())
+    {
+      return true;
+    }
+
     auto systemSecurity = std::static_pointer_cast<aeres::AeresSystemSecurityApi>(this->CreateObject("SystemSecurity", "system://Security", "SystemSecurity"));
     auto result = systemSecurity->LoginPassword(username, password);
 
@@ -215,6 +220,12 @@ namespace aeres
     }
 
     bool stFound = config->Cookies().FindFirst("st", base.c_str(), "/") != config->Cookies().End();
+
+    if (stFound)
+    {
+      this->username = username;
+      this->password = password;
+    }
 
     return stFound;
   }

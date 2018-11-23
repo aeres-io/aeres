@@ -93,7 +93,7 @@ namespace aeres
     static bool daemon;
 
     static bool Usage(const char * message = nullptr, ...);
-    static bool Init(int argc, const char ** argv);
+    static bool Init(std::vector<std::string> args);
     static bool Validate();
   };
 }

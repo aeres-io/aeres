@@ -104,7 +104,7 @@ bool Options::daemon;
 
 bool Options::Usage(const char * message, ...)
 {
-  if (message != NULL)
+  if (message != NULL && message[0] != '\0')
   {
     va_list args;
     va_start(args, message);
@@ -146,6 +146,10 @@ bool Options::Usage(const char * message, ...)
       printf("  -a,--application <application>  Specify the application ID\n");
 //      printf("  -w,--web <web>[:<port>]         Aeres web portal (optional)\n");
       printf("\n");
+      printf("Properties:\n");
+      printf("\n");
+      printf("  Description                     <string>\n");
+      printf("\n");
       break;
     case Command::Endpoint:
       printf("Usage:\n");
@@ -180,8 +184,7 @@ bool Options::Usage(const char * message, ...)
       printf("\n");
       printf("Properties:\n");
       printf("\n");
-      printf("  access                          public|private\n");
-      printf("  password                        <string>\n");
+      printf("  Description                     <string>\n");
       printf("\n");
       break;
     case Command::Rule:
@@ -321,20 +324,24 @@ bool Options::Usage(const char * message, ...)
       break;
   }
 
-  exit(message == NULL ? 0 : 1);
+  return message == NULL;
 }
 
-bool Options::Init(int argc, const char **argv)
+bool Options::Init(std::vector<std::string> argv)
 {
+  Options::command = Command::None;
+  Options::action = Action::None;
+  Options::args.clear();
+
 #define assert_argument_index(_idx, _name)    \
-  if ((_idx) >= argc)                         \
+  if ((_idx) >= argv.size())                         \
   {                                           \
-    Usage("Missing argument '%s'.\n", _name); \
+    return Usage("Missing argument '%s'.\n", _name.c_str()); \
   }
 
   int i = 1;
 
-  if (argc >= 2 && argv[1][0] != '-')
+  if (argv.size() >= 2 && argv[1][0] != '-')
   {
     i++;
     switch (argv[1][0])
@@ -363,11 +370,11 @@ bool Options::Init(int argc, const char **argv)
     }
   }
 
-  for (; i < argc; ++i)
+  for (; i < argv.size(); ++i)
   {
     if (argv[i][0] != '-')
     {
-      args.push_back(argv[i]);
+      Options::args.push_back(argv[i]);
       if (args.size() == 1)
       {
         arg1 = argv[i];
@@ -377,112 +384,112 @@ bool Options::Init(int argc, const char **argv)
         arg2 = argv[i];
       }
     }
-    else if (strcmp(argv[i], "--add") == 0)
+    else if (argv[i] == "--add")
     {
       action = Action::Add;
     }
-    else if (strcmp(argv[i], "--update") == 0)
+    else if (argv[i] == "--update")
     {
       action = Action::Update;
     }
-    else if (strcmp(argv[i], "--show") == 0)
+    else if (argv[i] == "--show")
     {
       action = Action::Show;
     }
-    else if (strcmp(argv[i], "--list") == 0)
+    else if (argv[i] == "--list")
     {
       action = Action::List;
     }
-    else if (strcmp(argv[i], "--remove") == 0)
+    else if (argv[i] == "--remove")
     {
       action = Action::Remove;
     }
-    else if (strcmp(argv[i], "--remove-all") == 0)
+    else if (argv[i] == "--remove-all")
     {
       action = Action::RemoveAll;
     }
-    else if (strcmp(argv[i], "--get") == 0)
+    else if (argv[i] == "--get")
     {
       action = Action::Get;
     }
-    else if (strcmp(argv[i], "--get-all") == 0)
+    else if (argv[i] == "--get-all")
     {
       action = Action::GetAll;
     }
-    else if (strcmp(argv[i], "--set") == 0)
+    else if (argv[i] == "--set")
     {
       action = Action::Set;
     }
-    else if (strcmp(argv[i], "--del") == 0)
+    else if (argv[i] == "--del")
     {
       action = Action::Del;
     }
-    else if (strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--application") == 0)
+    else if (argv[i] == "-a" || argv[i] == "--application")
     {
       assert_argument_index(++i, argv[i-1]);
       applicationId = argv[i];
     }
-    else if (strcmp(argv[i], "-e") == 0 || strcmp(argv[i], "--endpoint") == 0)
+    else if (argv[i] == "-e" || argv[i] == "--endpoint")
     {
       assert_argument_index(++i, argv[i-1]);
       endpointId = argv[i];
     }
-    else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--rule") == 0)
+    else if (argv[i] == "-r" || argv[i] == "--rule")
     {
       assert_argument_index(++i, argv[i-1]);
       ruleId = argv[i];
     }
-    else if (strcmp(argv[i], "-u") == 0 || strcmp(argv[i], "--username") == 0)
+    else if (argv[i] == "-u" || argv[i] == "--username")
     {
       assert_argument_index(++i, argv[i-1]);
       username = argv[i];
     }
-    else if (strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "--password") == 0)
+    else if (argv[i] == "-p" || argv[i] == "--password")
     {
       assert_argument_index(++i, argv[i-1]);
       password = argv[i];
     }
-    else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--host") == 0)
+    else if (argv[i] == "-h" || argv[i] == "--host")
     {
       assert_argument_index(++i, argv[i-1]);
       host = argv[i];
     }
-    else if (strcmp(argv[i], "-w") == 0 || strcmp(argv[i], "--web") == 0)
+    else if (argv[i] == "-w" || argv[i] == "--web")
     {
       assert_argument_index(++i, argv[i-1]);
       portal = argv[i];
     }
-    else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--daemon") == 0)
+    else if (argv[i] == "-d" || argv[i] == "--daemon")
     {
       daemon = true;
     }
-    else if (strcmp(argv[i], "-k") == 0 || strcmp(argv[i], "--key") == 0)
+    else if (argv[i] == "-k" || argv[i] == "--key")
     {
       assert_argument_index(++i, argv[i-1]);
       key = argv[i];
     }
-    else if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--config") == 0)
+    else if (argv[i] == "-c" || argv[i] == "--config")
     {
       assert_argument_index(++i, argv[i-1]);
       cfgFile = argv[i];
     }
-    else if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--log") == 0)
+    else if (argv[i] == "-l" || argv[i] == "--log")
     {
       assert_argument_index(++i, argv[i-1]);
       logFile = argv[i];
     }
-    else if (strcmp(argv[i], "--log-level") == 0)
+    else if (argv[i] == "--log-level")
     {
       assert_argument_index(++i, argv[i-1]);
-      logLevel = Log::LogLevelFromInt(atoi(argv[i]));
+      logLevel = Log::LogLevelFromInt(atoi(argv[i].c_str()));
     }
-    else if (strcmp(argv[i], "-?") == 0 || strcmp(argv[i], "--help") == 0)
+    else if (argv[i] == "-?" || argv[i] == "--help")
     {
-      Usage();
+      return Usage("");
     }
     else
     {
-      Usage("Error: unknown argument '%s'.\n", argv[i]);
+      return Usage("Error: unknown argument '%s'.\n", argv[i].c_str());
     }
   }
 
@@ -613,17 +620,17 @@ bool Options::Validate()
       {
         case Action::None:
         case Action::Unknown:
-          Usage("Error: missing action\n");
+          return Usage("Error: missing action\n");
         case Action::Set:
           if (args.size() < 2)
           {
-            Usage("Error: missing argument\n");
+            return Usage("Error: missing argument\n");
           }
         case Action::Get:
         case Action::Del:
           if (args.size() < 1)
           {
-            Usage("Error: missing argument\n");
+            return Usage("Error: missing argument\n");
           }
         case Action::Remove:
         case Action::Update:
@@ -631,7 +638,7 @@ bool Options::Validate()
         case Action::GetAll:
           if (Options::applicationId.size() == 0)
           {
-            Usage("Error: missing application\n");
+            return Usage("Error: missing application\n");
           }
           break;
       }
@@ -639,27 +646,27 @@ bool Options::Validate()
     case Command::Endpoint:
       if (Options::username.size() == 0)
       {
-        Usage("Error: missing username\n");
+        return Usage("Error: missing username\n");
       }
       if (Options::password.size() == 0)
       {
-        Usage("Error: missing password\n");
+        return Usage("Error: missing password\n");
       }
       switch (Options::action)
       {
         case Action::None:
         case Action::Unknown:
-          Usage("Error: missing action\n");
+          return Usage("Error: missing action\n");
         case Action::Set:
           if (args.size() < 2)
           {
-            Usage("Error: missing argument\n");
+            return Usage("Error: missing argument\n");
           }
         case Action::Get:
         case Action::Del:
           if (args.size() < 1)
           {
-            Usage("Error: missing argument\n");
+            return Usage("Error: missing argument\n");
           }
         case Action::Remove:
         case Action::Update:
@@ -667,7 +674,7 @@ bool Options::Validate()
         case Action::GetAll:
           if (Options::endpointId.size() == 0)
           {
-            Usage("Error: missing endpoint\n");
+            return Usage("Error: missing endpoint\n");
           }
           break;
       }
@@ -675,31 +682,31 @@ bool Options::Validate()
     case Command::Rule:
       if (Options::username.size() == 0)
       {
-        Usage("Error: missing username\n");
+        return Usage("Error: missing username\n");
       }
       if (Options::password.size() == 0)
       {
-        Usage("Error: missing password\n");
+        return Usage("Error: missing password\n");
       }
       if (Options::endpointId.size() == 0)
       {
-        Usage("Error: missing endpoint\n");
+        return Usage("Error: missing endpoint\n");
       }
       switch (Options::action)
       {
         case Action::None:
         case Action::Unknown:
-          Usage("Error: missing action\n");
+          return Usage("Error: missing action\n");
         case Action::Set:
           if (args.size() < 2)
           {
-            Usage("Error: missing argument\n");
+            return Usage("Error: missing argument\n");
           }
         case Action::Get:
         case Action::Del:
           if (args.size() < 1)
           {
-            Usage("Error: missing argument\n");
+            return Usage("Error: missing argument\n");
           }
         case Action::Remove:
         case Action::Update:
@@ -707,24 +714,24 @@ bool Options::Validate()
         case Action::GetAll:
           if (Options::ruleId.size() == 0)
           {
-            Usage("Error: missing rule\n");
+            return Usage("Error: missing rule\n");
           }
       }
       return true;
     case Command::Listen:
       if (Options::applicationId.size() == 0)
       {
-        Usage("Error: missing application\n");
+        return Usage("Error: missing application\n");
       }
       if (Options::endpointId.size() == 0)
       {
-        Usage("Error: missing endpoint\n");
+        return Usage("Error: missing endpoint\n");
       }
       return true;
     case Command::Tunnel:
       if (Options::endpointId.size() == 0)
       {
-        Usage("Error: missing endpoint\n");
+        return Usage("Error: missing endpoint\n");
       }
       return true;
   }
