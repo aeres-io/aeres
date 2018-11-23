@@ -16,7 +16,7 @@ public:
   AeresRule(std::shared_ptr<AeresSession> session, std::string & application, std::string & endpoint);
 
   bool Process();
-  bool List(std::vector<std::string> & rules);
+  bool List(std::vector<std::pair<std::string, std::string>> & rules);
   bool Show(std::string & rule);
   bool Add(std::string & rule, std::string & ruleSpec);
   bool Update(std::string & rule, std::string & ruleSpec);

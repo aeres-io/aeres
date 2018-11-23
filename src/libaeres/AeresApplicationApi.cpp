@@ -103,14 +103,7 @@ namespace aeres
       [result](Json::Value & response, bool error)
       {
         result->SetError(error);
-        if (error || !response.isArray())
-        {
-          result->Complete(Json::Value());
-        }
-        else
-        {
-          result->Complete(std::move(response));
-        }
+        result->Complete(error || !response.isArray() ? Json::Value() : std::move(response));
       }
     );
 
@@ -136,14 +129,7 @@ namespace aeres
       [result](Json::Value & response, bool error)
       {
         result->SetError(error);
-        if (error || !response.isObject())
-        {
-          result->Complete(Json::Value());
-        }
-        else
-        {
-          result->Complete(std::move(response));
-        }
+        result->Complete(error || !response.isObject() ? Json::Value() : std::move(response));
       }
     );
 

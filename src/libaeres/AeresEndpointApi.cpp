@@ -108,4 +108,57 @@ namespace aeres
 
     return rtn ? result : nullptr;
   }
+
+  AsyncResultPtr<Json::Value> AeresEndpointApi::GetRules()
+  {
+    AeresObject::CArgs args;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("GetRules", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        if (error || !response.isArray())
+        {
+          result->Complete(Json::Value());
+        }
+        else
+        {
+          result->Complete(std::move(response));
+        }
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
+  AsyncResultPtr<Json::Value> AeresEndpointApi::NewRule(const char * spec)
+  {
+    assert(spec);
+
+    AeresObject::CArgs args;
+
+    if(spec && spec != "")
+    {
+      args["spec"] = std::string(spec);
+    }
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("NewRule", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        if (error || !response.isObject())
+        {
+          result->Complete(Json::Value());
+        }
+        else
+        {
+          result->Complete(std::move(response));
+        }
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
 }

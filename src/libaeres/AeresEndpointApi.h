@@ -44,5 +44,10 @@ namespace aeres
     AsyncResultPtr<Json::Value> SetDescription(std::string & value);
     AsyncResultPtr<Json::Value> GetProperties();
     AsyncResultPtr<bool> Delete();
+
+    AsyncResultPtr<Json::Value> GetRules();
+
+    AsyncResultPtr<Json::Value> NewRule(const char * spec);
+
   };
 }
