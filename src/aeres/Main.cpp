@@ -64,7 +64,7 @@ int main(int argc, const char ** argv)
   aeres::Log::SetTarget(log);
   aeres::Log::SetDefaultLevel(Options::logLevel);
 
-  auto session = AeresSession::CreateSession(Options::host.c_str());
+  auto session = AeresSession::CreateSession(Options::portal.c_str());
 
   switch (Options::command)
   {
@@ -93,7 +93,7 @@ int main(int argc, const char ** argv)
     }
     case Command::Listen:
     {
-      AeresListener listener(Options::applicationId, Options::endpointId);
+      AeresListener listener(session, Options::applicationId, Options::endpointId);
       res = listener.Process();
       break;
     }

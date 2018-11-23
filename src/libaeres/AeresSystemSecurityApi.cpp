@@ -59,4 +59,61 @@ namespace aeres
     return rtn ? result : nullptr;
   }
 
+
+  AsyncResultPtr<std::string> AeresSystemSecurityApi::LoginEndpoint(const std::string & appId, const std::string & endpointId)
+  {
+    AeresObject::CArgs args;
+    args["appId"] = Json::Value(appId);
+    args["endpointId"] = Json::Value(endpointId);
+
+    auto result = std::make_shared<AsyncResult<std::string>>();
+
+//TODO:change to Json::Value
+
+    bool rtn = this->Call("LoginEndpoint", args,
+      [result](std::string && data, bool error)
+      {
+        result->SetError(error || data.find("Error") != std::string::npos);
+
+        if (error)
+        {
+          result->Complete(std::string());
+        }
+        else
+        {
+          result->Complete(std::move(data));
+        }
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
+
+  AsyncResultPtr<std::string> AeresSystemSecurityApi::VerifyEndpointToken(const std::string & et)
+  {
+    AeresObject::CArgs args;
+    args["et"] = Json::Value(et);
+
+    auto result = std::make_shared<AsyncResult<std::string>>();
+
+    bool rtn = this->Call("VerifyEndpointToken", args,
+      [result](std::string && data, bool error)
+      {
+        result->SetError(error || data.find("Error") != std::string::npos);
+
+        if (error)
+        {
+          result->Complete(std::string());
+        }
+        else
+        {
+          result->Complete(std::move(data));
+        }
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
 }

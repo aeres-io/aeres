@@ -7,7 +7,8 @@
 namespace aeres
 {
 
-AeresListener::AeresListener(std::string & applicationId, std::string & endpointId) :
+AeresListener::AeresListener(std::shared_ptr<AeresSession> session, std::string & applicationId, std::string & endpointId) :
+  session(session),
   applicationId(applicationId),
   endpointId(endpointId)
 {
@@ -30,18 +31,26 @@ bool AeresListener::Process()
   {
     aeres::Log::Information("Starting relay client...");
 
-    aeres::client::QuicClient client{Options::applicationId, host, Options::port};
-
-    if (!client.Start())
+    std::string et = session->LoginEndpoint(Options::applicationId,Options::endpointId);
+    if (!et.empty())
     {
-      aeres::Log::Critical("Failed to start relay client.");
+      aeres::client::QuicClient client{et, host, Options::port};
+
+      if (!client.Start())
+      {
+        aeres::Log::Critical("Failed to start relay client.");
+      }
+
+      aeres::Log::Information("Relay client started.");
+
+      client.WaitForExit();
+
+      aeres::Log::Information("Prepare to restart relay client...");
     }
-
-    aeres::Log::Information("Relay client started.");
-
-    client.WaitForExit();
-
-    aeres::Log::Information("Prepare to restart relay client...");
+    else
+    {
+      aeres::Log::Information("Failed to login endpoint.");
+    }
 
     std::this_thread::sleep_for(std::chrono::seconds(5));
   }

@@ -96,7 +96,7 @@ namespace aeres
     {
       delete this->config;
       this->config = nullptr;
-    } 
+    }
   }
 
   void AeresSession::Stop()
@@ -112,7 +112,7 @@ namespace aeres
   {
     char sep = '?';
     std::stringstream res;
-    Json::FastWriter writer; 
+    Json::FastWriter writer;
     for (AeresObject::CArgs::iterator itr = args.begin(); itr != args.end(); itr++)
     {
       res << sep << (*itr).first << '=' << HttpRequest::EncodeStr(writer.write((*itr).second).c_str());
@@ -153,7 +153,7 @@ namespace aeres
     {
       return false;
     }
-    
+
     req->Post(data, callback);
     queue.Enqueue(req);
     return true;
@@ -168,7 +168,7 @@ namespace aeres
     {
       return false;
     }
-    
+
     req->Post(data, callback);
     queue.Enqueue(req);
     return true;
@@ -218,6 +218,41 @@ namespace aeres
 
     return stFound;
   }
+
+  std::string AeresSession::LoginEndpoint(std::string & appId, std::string & endpointId)
+  {
+    auto systemSecurity = std::static_pointer_cast<aeres::AeresSystemSecurityApi>(this->CreateObject("SystemSecurity", "system://Security", "SystemSecurity"));
+    auto result = systemSecurity->LoginEndpoint(appId, endpointId);
+
+    if(!result->Wait() || result->HasError())
+    {
+      return "";
+    }
+
+    auto res = result->GetResult();
+
+    return res.c_str();
+  }
+
+
+
+  std::string AeresSession::VerifyEndpointToken(std::string & et)
+  {
+    auto systemSecurity = std::static_pointer_cast<aeres::AeresSystemSecurityApi>(this->CreateObject("SystemSecurity", "system://Security", "SystemSecurity"));
+    auto result = systemSecurity->VerifyEndpointToken(et);
+
+    if(!result->Wait() || result->HasError())
+    {
+      return "";
+    }
+
+    auto res = result->GetResult();
+
+    return res.c_str();
+  }
+
+
+
 
   uint32_t AeresSession::GetTimeout() const
   {
