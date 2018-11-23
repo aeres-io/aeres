@@ -1,16 +1,16 @@
 #include "AeresEndpointCli.h"
+
 #include "Options.h"
 #include "AeresUserApi.h"
-#include "AeresApplicationApi.h"
+#include "AeresEndpointsApi.h"
 #include "AeresEndpointApi.h"
 
 #include <iomanip>
 
 namespace aeres {
 
-AeresEndpointCli::AeresEndpointCli(std::shared_ptr<AeresSession> session, std::string & application) :
-  session(session),
-  application(application)
+AeresEndpointCli::AeresEndpointCli(std::shared_ptr<AeresSession> session) :
+  session(session)
 {
 }
 
@@ -64,10 +64,8 @@ bool AeresEndpointCli::Process()
 
 bool AeresEndpointCli::List()
 {
-  std::string path = "name://Applications/" + Options::applicationId;
-  auto appApi = std::static_pointer_cast<aeres::AeresApplicationApi>(session->CreateObject("Applications", path.c_str(), "Applications"));
-
-  auto result = appApi->GetEndpoints();
+  auto endpointsApi = std::static_pointer_cast<aeres::AeresEndpointsApi>(session->CreateObject("Endpoints", "name://Endpoints", "Endpoints"));
+  auto result = endpointsApi->GetEndpoints();
 
   if (!result->Wait() || result->HasError())
   {
@@ -94,10 +92,8 @@ bool AeresEndpointCli::List()
 
 bool AeresEndpointCli::Add(const char * description)
 {
-  std::string path = "name://Applications/" + Options::applicationId;
-  auto appApi = std::static_pointer_cast<aeres::AeresApplicationApi>(session->CreateObject("Applications", path.c_str(), "Applications"));
-
-  auto result = appApi->NewEndpoint(nullptr, description);
+  auto endpointsApi = std::static_pointer_cast<aeres::AeresEndpointsApi>(session->CreateObject("Endpoints", "name://Endpoints", "Endpoints"));
+  auto result = endpointsApi->NewEndpoint(description);
 
   if (!result->Wait() || result->HasError())
   {

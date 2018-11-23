@@ -81,13 +81,13 @@ int main(int argc, const char ** argv)
     }
     case Command::Endpoint:
     {
-      AeresEndpointCli endpoint(session, Options::applicationId);
+      AeresEndpointCli endpoint(session);
       res = endpoint.Process();
       break;
     }
     case Command::Rule:
     {
-      AeresRuleCli rule(session, Options::applicationId, Options::endpointId);
+      AeresRuleCli rule(session, Options::endpointId);
       res = rule.Process();
       break;
     }

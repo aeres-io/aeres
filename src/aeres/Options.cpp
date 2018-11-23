@@ -642,10 +642,6 @@ bool Options::Validate()
       {
         Usage("Error: missing password\n");
       }
-      if (Options::applicationId.size() == 0)
-      {
-        Usage("Error: missing application\n");
-      }
       switch (Options::action)
       {
         case Action::None:

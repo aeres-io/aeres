@@ -1,7 +1,8 @@
 #include "AeresApplicationCli.h"
+
 #include "Options.h"
+#include "AeresApplicationsApi.h"
 #include "AeresApplicationApi.h"
-#include "AeresUserApi.h"
 
 #include <iomanip>
 
@@ -62,10 +63,8 @@ bool AeresApplicationCli::Process()
 
 bool AeresApplicationCli::List()
 {
-  std::string path = "name://Users/" + Options::username;
-  auto userApi = std::static_pointer_cast<aeres::AeresUserApi>(session->CreateObject("User", path.c_str(), "User"));
-
-  auto result = userApi->GetApplications();
+  auto appsApi = std::static_pointer_cast<AeresApplicationsApi>(session->CreateObject("Applications", "name://Applications", "Applications"));
+  auto result = appsApi->GetApplications();
 
   if (!result->Wait() || result->HasError())
   {
@@ -92,9 +91,8 @@ bool AeresApplicationCli::List()
 
 bool AeresApplicationCli::Add(const char * description)
 {
-  auto appApi = std::static_pointer_cast<AeresApplicationApi>(session->CreateObject("Applications", "name://Applications", "Applications"));
-
-  auto result = appApi->NewApplication(description);
+  auto appsApi = std::static_pointer_cast<AeresApplicationsApi>(session->CreateObject("Applications", "name://Applications", "Applications"));
+  auto result = appsApi->NewApplication(description);
 
   if (!result->Wait() || result->HasError())
   {

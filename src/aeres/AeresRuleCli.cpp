@@ -7,9 +7,8 @@
 
 namespace aeres {
 
-AeresRuleCli::AeresRuleCli(std::shared_ptr<AeresSession> session, std::string & application, std::string & endpoint) :
+AeresRuleCli::AeresRuleCli(std::shared_ptr<AeresSession> session, std::string & endpoint) :
   session(session),
-  application(application),
   endpoint(endpoint)
 {
 }

@@ -18,20 +18,19 @@
   SOFTWARE.
 */
 
-#include <assert.h>
-#include <json/json.h>
-#include "AeresTypes.h"
-#include "Base64Encoder.h"
-#include "AeresUserApi.h"
+#pragma once
+
+#include "AeresObject.h"
+#include "AsyncResult.h"
 
 namespace aeres
 {
-  AERES_TYPE_REG(User, AeresUserApi);
-
-
-  AeresUserApi::AeresUserApi(const char * base, const char * name, const char * path, const char * type)
-    : AeresObject(base, name, path, type)
+  class AeresApplicationsApi : public AeresObject
   {
-  }
+  public:
+    AeresApplicationsApi(const char * base, const char * name, const char * path, const char * type);
 
+    AsyncResultPtr<Json::Value> GetApplications();
+    AsyncResultPtr<Json::Value> NewApplication(const char * description);
+  };
 }

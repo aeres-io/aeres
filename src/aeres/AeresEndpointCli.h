@@ -9,10 +9,9 @@ class AeresEndpointCli
 {
 private:
   std::shared_ptr<AeresSession> session;
-  std::string application;
 
 public:
-  AeresEndpointCli(std::shared_ptr<AeresSession> session, std::string & application);
+  AeresEndpointCli(std::shared_ptr<AeresSession> session);
 
   bool Process();
   bool List();

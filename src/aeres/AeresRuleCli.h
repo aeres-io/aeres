@@ -9,11 +9,10 @@ class AeresRuleCli
 {
 private:
   std::shared_ptr<AeresSession> session;
-  std::string application;
   std::string endpoint;
 
 public:
-  AeresRuleCli(std::shared_ptr<AeresSession> session, std::string & application, std::string & endpoint);
+  AeresRuleCli(std::shared_ptr<AeresSession> session, std::string & endpoint);
 
   bool Process();
   bool List();

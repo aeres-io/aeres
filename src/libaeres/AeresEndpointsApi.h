@@ -18,20 +18,28 @@
   SOFTWARE.
 */
 
-#include <assert.h>
-#include <json/json.h>
-#include "AeresTypes.h"
-#include "Base64Encoder.h"
-#include "AeresUserApi.h"
+#pragma once
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <memory>
+#include <string>
+#include "AeresObject.h"
+#include "AsyncResult.h"
+
+#ifdef _WIN32
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
+#endif
 
 namespace aeres
 {
-  AERES_TYPE_REG(User, AeresUserApi);
-
-
-  AeresUserApi::AeresUserApi(const char * base, const char * name, const char * path, const char * type)
-    : AeresObject(base, name, path, type)
+  class AeresEndpointsApi : public AeresObject
   {
-  }
+  public:
+    AeresEndpointsApi(const char * base, const char * name, const char * path, const char * type);
 
+    AsyncResultPtr<Json::Value> GetEndpoints();
+    AsyncResultPtr<Json::Value> NewEndpoint(const char * description = nullptr);
+  };
 }
