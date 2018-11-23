@@ -34,6 +34,8 @@
 #include "Options.h"
 
 #include <stdio.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -83,8 +85,7 @@ int main(int argc, const char ** argv)
       while (true)
       {
         std::string line;
-        std::cout << "> ";
-        std::getline(std::cin, line);
+        line = readline("> ");
         if (line == "quit")
         {
           break;

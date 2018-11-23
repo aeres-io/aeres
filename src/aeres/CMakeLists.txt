@@ -66,5 +66,6 @@ aeres_sys_lib(aeres ssl)
 aeres_sys_lib(aeres quic)
 aeres_sys_lib(aeres dl)
 aeres_sys_lib(aeres z)
+aeres_sys_lib(aeres readline)
 
 aeres_use_pthread(aeres)
