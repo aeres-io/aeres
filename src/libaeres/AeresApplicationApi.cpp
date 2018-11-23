@@ -92,30 +92,30 @@ namespace aeres
   }
 
 
-   AsyncResultPtr<Json::Value> AeresApplicationApi::NewApplication(const char * displayName)
-   {
-   assert(displayName);
+  AsyncResultPtr<Json::Value> AeresApplicationApi::NewApplication(const char * displayName)
+  {
+    assert(displayName);
 
-   AeresObject::CArgs args;
-   args["displayName"] = std::string(displayName);
+    AeresObject::CArgs args;
+    args["displayName"] = std::string(displayName);
 
-   auto result = std::make_shared<AsyncResult<Json::Value>>();
-   bool rtn = this->Call("NewApplication", args,
-     [result](Json::Value & response, bool error)
-     {
-       result->SetError(error);
-       if (error || !response.isObject())
-       {
-         result->Complete(Json::Value());
-       }
-       else
-       {
-         result->Complete(std::move(response));
-       }
-     }
-   );
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("NewApplication", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        if (error || !response.isObject())
+        {
+          result->Complete(Json::Value());
+        }
+        else
+        {
+          result->Complete(std::move(response));
+        }
+      }
+    );
 
-   return rtn ? result : nullptr;
+    return rtn ? result : nullptr;
   }
 
   AsyncResultPtr<bool> AeresApplicationApi::Delete()
