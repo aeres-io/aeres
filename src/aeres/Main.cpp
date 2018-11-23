@@ -32,7 +32,7 @@
 
 #include <aeres/Log.h>
 #include "AeresSession.h"
-#include "AeresApplication.h"
+#include "AeresApplicationCli.h"
 #include "AeresEndpoint.h"
 #include "AeresRule.h"
 #include "AeresListener.h"
@@ -75,7 +75,7 @@ int main(int argc, const char ** argv)
     }
     case Command::Application:
     {
-      AeresApplication application(session);
+      AeresApplicationCli application(session);
       res = application.Process();
       break;
     }
@@ -99,7 +99,7 @@ int main(int argc, const char ** argv)
     }
     case Command::Tunnel:
     {
-      AeresTunnel tunnel(Options::endpointId, Options::key);
+      AeresTunnel tunnel(Options::endpointId);
       res = tunnel.Process();
       break;
     }
