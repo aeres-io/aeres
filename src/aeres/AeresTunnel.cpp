@@ -3,9 +3,8 @@
 namespace aeres
 {
 
-AeresTunnel::AeresTunnel(std::string & endpointId, std::string & key) :
-  endpointId(endpointId),
-  key(key)
+AeresTunnel::AeresTunnel(std::string & endpointId) :
+  endpointId(endpointId)
 {
 }
 

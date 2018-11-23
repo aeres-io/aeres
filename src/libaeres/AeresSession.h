@@ -35,6 +35,8 @@ namespace aeres
     HttpConfig * config;
     std::string base;
     std::string st;
+    std::string username;
+    std::string password;
     bool ownConfig;
 
     std::string __EncodeArgs(AeresObject::CArgs & args);

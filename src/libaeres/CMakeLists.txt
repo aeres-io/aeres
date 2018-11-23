@@ -46,8 +46,11 @@ add_library(
   HttpRequest.cpp
   Event.cpp
   AeresSystemSecurityApi.cpp
+  AeresApplicationsApi.cpp
   AeresApplicationApi.cpp
+  AeresEndpointsApi.cpp
   AeresEndpointApi.cpp
+  AeresRuleApi.cpp
   AeresUserApi.cpp
 )
 

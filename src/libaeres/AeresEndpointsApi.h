@@ -34,18 +34,12 @@ typedef SSIZE_T ssize_t;
 
 namespace aeres
 {
-  class AeresEndpointApi : public AeresObject
+  class AeresEndpointsApi : public AeresObject
   {
   public:
+    AeresEndpointsApi(const char * base, const char * name, const char * path, const char * type);
 
-    AeresEndpointApi(const char * base, const char * name, const char * path, const char * type);
-
-    AsyncResultPtr<Json::Value> GetDescription();
-    AsyncResultPtr<Json::Value> SetDescription(std::string & value);
-    AsyncResultPtr<Json::Value> GetProperties();
-    AsyncResultPtr<bool> Delete();
-
-    AsyncResultPtr<Json::Value> GetRules();
-    AsyncResultPtr<Json::Value> NewRule(const std::string & action, const std::string & domain, const std::string & port, const std::string & protocol);
+    AsyncResultPtr<Json::Value> GetEndpoints();
+    AsyncResultPtr<Json::Value> NewEndpoint(const char * description = nullptr);
   };
 }

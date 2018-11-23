@@ -23,32 +23,44 @@
 */
 
 
-#include <stdio.h>
-#include <iostream>
-#include <thread>
-#include <chrono>
-
-#include <openssl/ssl.h>
-
 #include <aeres/Log.h>
 #include "AeresSession.h"
-#include "AeresApplication.h"
-#include "AeresEndpoint.h"
-#include "AeresRule.h"
+#include "AeresApplicationCli.h"
+#include "AeresEndpointCli.h"
+#include "AeresRuleCli.h"
 #include "AeresListener.h"
 #include "AeresTunnel.h"
 
 #include "Options.h"
 
+#include <stdio.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <sstream>
+
+#include <openssl/ssl.h>
+
 using namespace aeres;
 
 int main(int argc, const char ** argv)
 {
+  std::vector<std::string> args;
+  for (int i = 0; i < argc; i++)
+  {
+    args.push_back(argv[i]);
+  }
+
   SSL_library_init();
 
   int res = 0;
 
-  Options::Init(argc, argv);
+  if (!Options::Init(args))
+  {
+    return false;
+  }
 
   FILE * log = stdout;
 
@@ -70,24 +82,97 @@ int main(int argc, const char ** argv)
   {
     case Command::None:
     {
-      printf("TODO: REPL environment\n");
+      while (true)
+      {
+        std::string line;
+        char * buf = readline("> ");
+        add_history(buf);
+        line = buf;
+        free(buf);
+        if (line == "quit")
+        {
+          break;
+        }
+        else if (line[0] == 'h' && line[1] == 'e' && line[2] == 'l' && line[3] == 'p')
+        {
+          if (line.size() >= 6)
+          {
+            switch (line[5])
+            {
+              case 'a': case 'A': Options::command = Command::Application; break;
+              case 'e': case 'E': Options::command = Command::Endpoint; break;
+              case 'r': case 'R': Options::command = Command::Rule; break;
+              case 'l': case 'L': Options::command = Command::Listen; break;
+              case 't': case 'T': Options::command = Command::Tunnel; break;
+            }
+          }
+          Options::Usage();
+        }
+        else
+        {
+          std::string buf;
+          std::stringstream ss(line);
+          std::vector<std::string> tokens; // Create vector to hold our words
+          tokens.push_back("aeres");
+          while (ss >> buf)
+          {
+            tokens.push_back(buf);
+          }
+          if (Options::Init(tokens))
+          {
+            switch (Options::command)
+            {
+              case Command::Application:
+              {
+                AeresApplicationCli application(session);
+                res = application.Process();
+                break;
+              }
+              case Command::Endpoint:
+              {
+                AeresEndpointCli endpoint(session);
+                res = endpoint.Process();
+                break;
+              }
+              case Command::Rule:
+              {
+                AeresRuleCli rule(session, Options::endpointId);
+                res = rule.Process();
+                break;
+              }
+              case Command::Listen:
+              {
+                AeresListener listener(Options::applicationId, Options::endpointId);
+                res = listener.Process();
+                break;
+              }
+              case Command::Tunnel:
+              {
+                AeresTunnel tunnel(Options::endpointId);
+                res = tunnel.Process();
+                break;
+              }
+            }
+          }
+        }
+      }
       break;
     }
     case Command::Application:
     {
-      AeresApplication application(session);
+      AeresApplicationCli application(session);
       res = application.Process();
       break;
     }
     case Command::Endpoint:
     {
-      AeresEndpoint endpoint(session, Options::applicationId);
+      AeresEndpointCli endpoint(session);
       res = endpoint.Process();
       break;
     }
     case Command::Rule:
     {
-      AeresRule rule(session, Options::applicationId, Options::endpointId);
+      AeresRuleCli rule(session, Options::endpointId);
       res = rule.Process();
       break;
     }
@@ -99,7 +184,7 @@ int main(int argc, const char ** argv)
     }
     case Command::Tunnel:
     {
-      AeresTunnel tunnel(Options::endpointId, Options::key);
+      AeresTunnel tunnel(Options::endpointId);
       res = tunnel.Process();
       break;
     }

@@ -21,17 +21,52 @@
 #include <assert.h>
 #include <json/json.h>
 #include "AeresTypes.h"
-#include "Base64Encoder.h"
-#include "AeresUserApi.h"
+#include "AeresEndpointsApi.h"
 
 namespace aeres
 {
-  AERES_TYPE_REG(User, AeresUserApi);
+  AERES_TYPE_REG(Endpoints, AeresEndpointsApi);
 
-
-  AeresUserApi::AeresUserApi(const char * base, const char * name, const char * path, const char * type)
+  AeresEndpointsApi::AeresEndpointsApi(const char * base, const char * name, const char * path, const char * type)
     : AeresObject(base, name, path, type)
   {
+  }
+
+  AsyncResultPtr<Json::Value> AeresEndpointsApi::GetEndpoints()
+  {
+    AeresObject::CArgs args;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("GetEndpoints", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
+  AsyncResultPtr<Json::Value> AeresEndpointsApi::NewEndpoint(const char * description)
+  {
+    AeresObject::CArgs args;
+
+    if(description && description != "")
+    {
+      args["description"] = std::string(description);
+    }
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("NewEndpoint", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
   }
 
 }

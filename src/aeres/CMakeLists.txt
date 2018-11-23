@@ -41,9 +41,9 @@ add_executable(
   Main.cpp
   Options.cpp
   Config.cpp
-  AeresApplication.cpp
-  AeresEndpoint.cpp
-  AeresRule.cpp
+  AeresApplicationCli.cpp
+  AeresEndpointCli.cpp
+  AeresRuleCli.cpp
   AeresListener.cpp
   AeresTunnel.cpp
 )
@@ -66,5 +66,6 @@ aeres_sys_lib(aeres ssl)
 aeres_sys_lib(aeres quic)
 aeres_sys_lib(aeres dl)
 aeres_sys_lib(aeres z)
+aeres_sys_lib(aeres readline)
 
 aeres_use_pthread(aeres)

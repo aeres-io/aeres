@@ -37,10 +37,6 @@ namespace aeres
   class AeresUserApi : public AeresObject
   {
   public:
-
     AeresUserApi(const char * base, const char * name, const char * path, const char * type);
-
-    AsyncResultPtr<Json::Value> GetApplications();
-
   };
 }

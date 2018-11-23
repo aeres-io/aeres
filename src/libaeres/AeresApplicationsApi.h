@@ -20,32 +20,17 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <memory>
-#include <string>
 #include "AeresObject.h"
 #include "AsyncResult.h"
 
-#ifdef _WIN32
-#include <basetsd.h>
-typedef SSIZE_T ssize_t;
-#endif
-
 namespace aeres
 {
-  class AeresEndpointApi : public AeresObject
+  class AeresApplicationsApi : public AeresObject
   {
   public:
+    AeresApplicationsApi(const char * base, const char * name, const char * path, const char * type);
 
-    AeresEndpointApi(const char * base, const char * name, const char * path, const char * type);
-
-    AsyncResultPtr<Json::Value> GetDescription();
-    AsyncResultPtr<Json::Value> SetDescription(std::string & value);
-    AsyncResultPtr<Json::Value> GetProperties();
-    AsyncResultPtr<bool> Delete();
-
-    AsyncResultPtr<Json::Value> GetRules();
-    AsyncResultPtr<Json::Value> NewRule(const std::string & action, const std::string & domain, const std::string & port, const std::string & protocol);
+    AsyncResultPtr<Json::Value> GetApplications();
+    AsyncResultPtr<Json::Value> NewApplication(const char * description);
   };
 }
