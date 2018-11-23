@@ -134,6 +134,7 @@ bool Options::Usage(const char * message, ...)
       printf("\n");
       printf("  Note: the following actions require an application ID (-a)\n");
       printf("\n");
+      printf("  --show                          Show application details\n");
       printf("  --remove                        Remove an application ID\n");
       printf("  --get-all                       Retrieves all properties\n");
       printf("  --get <property>                Retrieves a property\n");
@@ -166,6 +167,7 @@ bool Options::Usage(const char * message, ...)
       printf("\n");
       printf("  Note: the following actions require an endpoint ID (-e)\n");
       printf("\n");
+      printf("  --show                          Show endpoint details\n");
       printf("  --remove                        Remove an endpoint\n");
       printf("  --get-all                       Retrieves all properties\n");
       printf("  --get <property>                Retrieves a property\n");
@@ -202,6 +204,7 @@ bool Options::Usage(const char * message, ...)
       printf("\n");
       printf("  Note: the following actions require a rule ID (-r)\n");
       printf("\n");
+      printf("  --show                          Show rule details\n");
       printf("  --remove                        Remove a rule\n");
       printf("  --update <rulespec>             Update a rule\n");
       printf("  --get-all                       Retrieves all properties\n");
