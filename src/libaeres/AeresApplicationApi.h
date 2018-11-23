@@ -41,8 +41,8 @@ namespace aeres
 
     AsyncResultPtr<Json::Value> GetDescription();
     AsyncResultPtr<Json::Value> SetDescription(std::string & value);
-    AsyncResultPtr<Json::Value> GetEndpoints();
     AsyncResultPtr<Json::Value> GetProperties();
+    AsyncResultPtr<Json::Value> GetEndpoints();
     AsyncResultPtr<Json::Value> NewApplication(const char * description);
     AsyncResultPtr<Json::Value> NewEndpoint(const char * endpointId = nullptr, const char * description = nullptr);
     AsyncResultPtr<bool> Delete();

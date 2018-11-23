@@ -34,6 +34,58 @@ namespace aeres
   {
   }
 
+  AsyncResultPtr<Json::Value> AeresEndpointApi::GetProperties()
+  {
+    AeresObject::CArgs args;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("GetProperties", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
+
+  AsyncResultPtr<Json::Value> AeresEndpointApi::GetDescription()
+  {
+    AeresObject::CArgs args;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("GetDescription", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
+
+  AsyncResultPtr<Json::Value> AeresEndpointApi::SetDescription(std::string & value)
+  {
+    AeresObject::CArgs args;
+    args["value"] = value;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("SetDescription", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
+
   AsyncResultPtr<bool> AeresEndpointApi::Delete()
   {
     AeresObject::CArgs args;

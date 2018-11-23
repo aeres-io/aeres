@@ -33,7 +33,7 @@
 #include <aeres/Log.h>
 #include "AeresSession.h"
 #include "AeresApplicationCli.h"
-#include "AeresEndpoint.h"
+#include "AeresEndpointCli.h"
 #include "AeresRule.h"
 #include "AeresListener.h"
 #include "AeresTunnel.h"
@@ -81,7 +81,7 @@ int main(int argc, const char ** argv)
     }
     case Command::Endpoint:
     {
-      AeresEndpoint endpoint(session, Options::applicationId);
+      AeresEndpointCli endpoint(session, Options::applicationId);
       res = endpoint.Process();
       break;
     }

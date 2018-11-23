@@ -42,7 +42,7 @@ add_executable(
   Options.cpp
   Config.cpp
   AeresApplicationCli.cpp
-  AeresEndpoint.cpp
+  AeresEndpointCli.cpp
   AeresRule.cpp
   AeresListener.cpp
   AeresTunnel.cpp

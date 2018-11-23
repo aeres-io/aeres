@@ -40,6 +40,9 @@ namespace aeres
 
     AeresEndpointApi(const char * base, const char * name, const char * path, const char * type);
 
+    AsyncResultPtr<Json::Value> GetDescription();
+    AsyncResultPtr<Json::Value> SetDescription(std::string & value);
+    AsyncResultPtr<Json::Value> GetProperties();
     AsyncResultPtr<bool> Delete();
   };
 }
