@@ -142,7 +142,7 @@ int main(int argc, const char ** argv)
               }
               case Command::Listen:
               {
-                AeresListener listener(Options::applicationId, Options::endpointId);
+                AeresListener listener(session, Options::applicationId, Options::endpointId);
                 res = listener.Process();
                 break;
               }
