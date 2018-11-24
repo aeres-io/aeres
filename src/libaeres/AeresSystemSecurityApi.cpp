@@ -90,17 +90,17 @@ namespace aeres
   }
 
 
-  AsyncResultPtr<std::string> AeresSystemSecurityApi::VerifyEndpointToken(const std::string & et)
+  AsyncResultPtr<Json::Value> AeresSystemSecurityApi::VerifyEndpointToken(const std::string & et)
   {
     AeresObject::CArgs args;
     args["et"] = Json::Value(et);
 
-    auto result = std::make_shared<AsyncResult<std::string>>();
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
 
     bool rtn = this->Call("VerifyEndpointToken", args,
-      [result](std::string && data, bool error)
+      [result](Json::Value & data, bool error)
       {
-        result->SetError(error || data.find("Error") != std::string::npos);
+        result->SetError(error);
 
         if (error)
         {

@@ -66,7 +66,7 @@ namespace aeres
     std::shared_ptr<AeresObject> CreateObject(const char * name, const char * path, const char * type);
     bool Login(std::string & username, std::string & password);
     std::string LoginEndpoint(std::string & appId, std::string & endpointId);
-    std::string VerifyEndpointToken(std::string & et);
+    Json::Value VerifyEndpointToken(std::string & et);
 
     uint32_t GetTimeout() const;
   };

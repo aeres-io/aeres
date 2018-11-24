@@ -42,7 +42,8 @@ namespace aeres
 
     AsyncResultPtr<std::string> LoginPassword(const std::string & username, const std::string & password);
     AsyncResultPtr<std::string> LoginEndpoint(const std::string & appId, const std::string & endpointId);
-    AsyncResultPtr<std::string> VerifyEndpointToken(const std::string & et);
+    AsyncResultPtr<Json::Value> VerifyEndpointToken(const std::string & et);
+
 
   };
 }

@@ -247,7 +247,7 @@ namespace aeres
 
 
 
-  std::string AeresSession::VerifyEndpointToken(std::string & et)
+  Json::Value AeresSession::VerifyEndpointToken(std::string & et)
   {
     auto systemSecurity = std::static_pointer_cast<aeres::AeresSystemSecurityApi>(this->CreateObject("SystemSecurity", "system://Security", "SystemSecurity"));
     auto result = systemSecurity->VerifyEndpointToken(et);
@@ -259,7 +259,7 @@ namespace aeres
 
     auto res = result->GetResult();
 
-    return res.c_str();
+    return res;
   }
 
 
