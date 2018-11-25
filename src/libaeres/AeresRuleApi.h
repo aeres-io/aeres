@@ -40,8 +40,14 @@ namespace aeres
 
     AeresRuleApi(const char * base, const char * name, const char * path, const char * type);
 
-    AsyncResultPtr<Json::Value> GetDescription();
-    AsyncResultPtr<Json::Value> SetDescription(std::string & value);
+    AsyncResultPtr<Json::Value> GetAction();
+    AsyncResultPtr<Json::Value> SetAction(std::string & value);
+    AsyncResultPtr<Json::Value> GetDomain();
+    AsyncResultPtr<Json::Value> SetDomain(std::string & value);
+    AsyncResultPtr<Json::Value> GetPort();
+    AsyncResultPtr<Json::Value> SetPort(std::string & value);
+    AsyncResultPtr<Json::Value> GetProtocol();
+    AsyncResultPtr<Json::Value> SetProtocol(std::string & value);
     AsyncResultPtr<Json::Value> GetProperties();
     AsyncResultPtr<bool> Delete();
   };

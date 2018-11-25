@@ -50,13 +50,12 @@ namespace aeres
     return rtn ? result : nullptr;
   }
 
-
-  AsyncResultPtr<Json::Value> AeresRuleApi::GetDescription()
+  AsyncResultPtr<Json::Value> AeresRuleApi::GetAction()
   {
     AeresObject::CArgs args;
 
     auto result = std::make_shared<AsyncResult<Json::Value>>();
-    bool rtn = this->Call("GetDescription", args,
+    bool rtn = this->Call("GetAction", args,
       [result](Json::Value & response, bool error)
       {
         result->SetError(error);
@@ -67,14 +66,13 @@ namespace aeres
     return rtn ? result : nullptr;
   }
 
-
-  AsyncResultPtr<Json::Value> AeresRuleApi::SetDescription(std::string & value)
+  AsyncResultPtr<Json::Value> AeresRuleApi::SetAction(std::string & value)
   {
     AeresObject::CArgs args;
     args["value"] = value;
 
     auto result = std::make_shared<AsyncResult<Json::Value>>();
-    bool rtn = this->Call("SetDescription", args,
+    bool rtn = this->Call("SetAction", args,
       [result](Json::Value & response, bool error)
       {
         result->SetError(error);
@@ -85,6 +83,104 @@ namespace aeres
     return rtn ? result : nullptr;
   }
 
+  AsyncResultPtr<Json::Value> AeresRuleApi::GetDomain()
+  {
+    AeresObject::CArgs args;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("GetDomain", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
+  AsyncResultPtr<Json::Value> AeresRuleApi::SetDomain(std::string & value)
+  {
+    AeresObject::CArgs args;
+    args["value"] = value;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("SetDomain", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
+  AsyncResultPtr<Json::Value> AeresRuleApi::GetPort()
+  {
+    AeresObject::CArgs args;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("GetPort", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
+  AsyncResultPtr<Json::Value> AeresRuleApi::SetPort(std::string & value)
+  {
+    AeresObject::CArgs args;
+    args["value"] = value;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("SetPort", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
+  AsyncResultPtr<Json::Value> AeresRuleApi::GetProtocol()
+  {
+    AeresObject::CArgs args;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("GetProtocol", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
+  AsyncResultPtr<Json::Value> AeresRuleApi::SetProtocol(std::string & value)
+  {
+    AeresObject::CArgs args;
+    args["value"] = value;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("SetProtocol", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
 
   AsyncResultPtr<bool> AeresRuleApi::Delete()
   {

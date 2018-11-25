@@ -202,9 +202,27 @@ bool AeresRuleCli::Get(std::string & rule, std::string & name)
 
   bool res = false;
 
-  if (name == "Description")
+  if (name == "Action")
   {
-    auto result = apiObj->GetDescription();
+    auto result = apiObj->GetAction();
+    res = result->Wait() && !result->HasError();
+    std::cout << result->GetResult() << std::endl;
+  }
+  else if (name == "Domain")
+  {
+    auto result = apiObj->GetDomain();
+    res = result->Wait() && !result->HasError();
+    std::cout << result->GetResult() << std::endl;
+  }
+  else if (name == "Port")
+  {
+    auto result = apiObj->GetPort();
+    res = result->Wait() && !result->HasError();
+    std::cout << result->GetResult() << std::endl;
+  }
+  else if (name == "Protocol")
+  {
+    auto result = apiObj->GetProtocol();
     res = result->Wait() && !result->HasError();
     std::cout << result->GetResult() << std::endl;
   }
@@ -219,9 +237,27 @@ bool AeresRuleCli::Set(std::string & rule, std::string & name, std::string & val
 
   bool res = false;
 
-  if (name == "Description")
+  if (name == "Action")
   {
-    auto result = apiObj->SetDescription(value);
+    auto result = apiObj->SetAction(value);
+    res = result->Wait() && !result->HasError();
+    std::cout << result->GetResult() << std::endl;
+  }
+  else if (name == "Domain")
+  {
+    auto result = apiObj->SetDomain(value);
+    res = result->Wait() && !result->HasError();
+    std::cout << result->GetResult() << std::endl;
+  }
+  else if (name == "Port")
+  {
+    auto result = apiObj->SetPort(value);
+    res = result->Wait() && !result->HasError();
+    std::cout << result->GetResult() << std::endl;
+  }
+  else if (name == "Protocol")
+  {
+    auto result = apiObj->SetProtocol(value);
     res = result->Wait() && !result->HasError();
     std::cout << result->GetResult() << std::endl;
   }
