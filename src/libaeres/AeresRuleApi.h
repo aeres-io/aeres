@@ -50,5 +50,6 @@ namespace aeres
     AsyncResultPtr<Json::Value> SetProtocol(std::string & value);
     AsyncResultPtr<Json::Value> GetProperties();
     AsyncResultPtr<bool> Delete();
+    AsyncResultPtr<Json::Value> Update(const std::string & action, const std::string & domain, const std::string & port, const std::string & protocol);
   };
 }

@@ -16,7 +16,8 @@ public:
 
   bool Process();
   bool List();
-  bool Add(const char * description);
+  bool Add(const char * spec);
+  bool Update(const std::string & rule, const std::string & spec);
   bool RemoveAll();
   bool Show(std::string & endpoint);
   bool Remove(std::string & endpoint);

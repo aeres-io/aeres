@@ -27,6 +27,10 @@ bool AeresRuleCli::Process()
       {
         return Add(Options::args.size() ? Options::arg1.c_str() : nullptr);
       }
+      case Action::Update:
+      {
+        return Update(Options::ruleId, Options::args.size() ? Options::arg1.c_str() : nullptr);
+      }
       case Action::RemoveAll:
       {
         return RemoveAll();
@@ -142,6 +146,46 @@ bool AeresRuleCli::Add(const char * spec)
    std::cout << rule << std::endl;
 
   return true;
+}
+
+bool AeresRuleCli::Update(const std::string & rule, const std::string & spec)
+{
+  if(spec.empty())
+  {
+    std::cout<<"Invalid spec"<<std::endl;
+    return false;
+  }
+
+  std::vector<std::string> tokens;
+  std::istringstream tokenStream(spec);
+  std::string token;
+  while (std::getline(tokenStream, token, ':'))
+  {
+    if(token.length())
+    {
+      tokens.push_back(token);
+    }
+  }
+
+  if(tokens.size() != 4)
+  {
+    std::cout<<"Invalid spec"<<std::endl;
+    return false;
+  }
+
+  std::string path = "name://Rules/" + rule;
+  auto apiObj = std::static_pointer_cast<aeres::AeresRuleApi>(session->CreateObject("Rules", path.c_str(), "Rules"));
+  auto result = apiObj->Update(tokens[0], tokens[1], tokens[2], tokens[3]);
+
+  if (!result->Wait() || result->HasError())
+  {
+    return false;
+  }
+
+  auto &op = result->GetResult();
+  std::cout <<  op << std::endl;
+
+  return op.isBool() ? op.asBool() : false;
 }
 
 bool AeresRuleCli::RemoveAll()
