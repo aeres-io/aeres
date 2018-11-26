@@ -22,6 +22,12 @@
   SOFTWARE.
 */
 
+#ifndef SOCK_NONBLOCK
+#include <fcntl.h>
+#define SOCK_NONBLOCK O_NONBLOCK
+#define SOCK_CLOEXEC O_CLOEXEC
+#endif
+
 #include <assert.h>
 #include <atomic>
 #include <unistd.h>
