@@ -61,7 +61,7 @@ aeres_lib(aeres libaeres-quic ${LIBDIR}/libaeres-quic.a)
 aeres_lib(aeres libaeres-common ${LIBDIR}/libaeres-common.a)
 aeres_lib(aeres jsoncpp ${ROOT_JSONCPP}/out/lib/libjsoncpp.a)
 
-if (DEFINED UNIX) #DARWIN
+if (DEFINED APPLE) #DARWIN
   if ((NOT DEFINED OPENSSL_INCLUDE_DIR) AND (NOT DEFINED OPENSSL_LIBRARIES))
     find_package(OPENSSL REQUIRED)
     if (NOT OPENSSL_FOUND)
@@ -71,7 +71,7 @@ if (DEFINED UNIX) #DARWIN
       link_directories(${OPENSSL_LIBRARIES})
     endif (NOT OPENSSL_FOUND)
   endif ((NOT DEFINED OPENSSL_INCLUDE_DIR) AND (NOT DEFINED OPENSSL_LIBRARIES))
-endif (DEFINED UNIX) #DARWIN
+endif (DEFINED APPLE) #DARWIN
 
 if (NOT DEFINED OPENSSL_LIBRARIES)
   set(OPENSSL_LIBRARIES ssl)
