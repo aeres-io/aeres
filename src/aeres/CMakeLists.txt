@@ -61,8 +61,25 @@ aeres_lib(aeres libaeres-quic ${LIBDIR}/libaeres-quic.a)
 aeres_lib(aeres libaeres-common ${LIBDIR}/libaeres-common.a)
 aeres_lib(aeres jsoncpp ${ROOT_JSONCPP}/out/lib/libjsoncpp.a)
 
+if (DEFINED UNIX) #DARWIN
+  if ((NOT DEFINED OPENSSL_INCLUDE_DIR) AND (NOT DEFINED OPENSSL_LIBRARIES))
+    find_package(OPENSSL REQUIRED)
+    if (NOT OPENSSL_FOUND)
+      message(FATAL_ERROR "openssl not found. Please define OPENSSL_INCLUDE_DIR and OPENSSL_LIBRARIES.")
+    else()
+      include_directories(${OPENSSL_INCLUDE_DIR})
+      link_directories(${OPENSSL_LIBRARIES})
+    endif (NOT OPENSSL_FOUND)
+  endif ((NOT DEFINED OPENSSL_INCLUDE_DIR) AND (NOT DEFINED OPENSSL_LIBRARIES))
+endif (DEFINED UNIX) #DARWIN
+
+if (NOT DEFINED OPENSSL_LIBRARIES)
+  set(OPENSSL_LIBRARIES ssl)
+endif (NOT DEFINED OPENSSL_LIBRARIES)
+
+
 aeres_sys_lib(aeres curl)
-aeres_sys_lib(aeres ssl)
+aeres_sys_lib(aeres ${OPENSSL_LIBRARIES})
 aeres_sys_lib(aeres quic)
 aeres_sys_lib(aeres dl)
 aeres_sys_lib(aeres z)

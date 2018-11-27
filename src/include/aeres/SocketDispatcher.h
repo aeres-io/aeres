@@ -32,6 +32,7 @@
 #include <aeres/Buffer.h>
 #include <aeres/BufferStream.h>
 #include <aeres/LockFreeQueue.h>
+#include <aeres/IoEventQueue.h>
 #include <aeres/SocketConnection.h>
 
 namespace aeres
@@ -116,7 +117,7 @@ namespace aeres
 
   private:
 
-    int epfd = -1;
+    std::unique_ptr<IoEventQueue> eventQueue;
 
     std::map<int, Entry> connections;
 

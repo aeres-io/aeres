@@ -105,8 +105,17 @@ namespace aeres
       }
     });
 
+#ifdef __linux__
     fd = socket(addr->sa_family, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
     return_val_if(nullptr, fd == -1);
+#else
+    fd = socket(addr->sa_family, SOCK_STREAM, 0);
+    return_val_if(nullptr, fd == -1);
+
+    int flags = fcntl(fd, F_GETFL, 0);
+    return_val_if(nullptr, flags < 0);
+    return_val_if(nullptr, fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0);
+#endif
 
     SetSocketOptions(fd);
 

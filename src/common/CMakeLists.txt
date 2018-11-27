@@ -32,9 +32,13 @@ set(ROOT ${PROJECT_SOURCE_DIR}/../..)
 
 include(${ROOT}/Config.cmake)
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(MACOSX TRUE)
+endif()
 
-add_library(
-  aeres-common STATIC
+
+set(
+  AERES_COMMON_SRC
 
   Buffer.cpp
   BufferedInputStream.cpp
@@ -49,6 +53,27 @@ add_library(
   SocketConnection.cpp
   SocketDispatcher.cpp
 )
+
+
+if (DEFINED UNIX AND NOT DEFINED MACOSX)
+  set(
+    AERES_COMMON_SRC ${AERES_COMMON_SRC}
+
+    IoEventQueueLinux.cpp
+  )
+endif (DEFINED UNIX AND NOT DEFINED MACOSX)
+
+
+if (DEFINED MACOSX)
+  set(
+    AERES_COMMON_SRC ${AERES_COMMON_SRC}
+
+    IoEventQueueMac.cpp
+  )
+endif (DEFINED MACOSX)
+
+
+add_library(aeres-common STATIC ${AERES_COMMON_SRC})
 
 include_directories("../include")
 

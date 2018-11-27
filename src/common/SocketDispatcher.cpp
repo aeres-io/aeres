@@ -23,7 +23,6 @@
 */
 
 #include <unistd.h>
-#include <sys/epoll.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <aeres/ScopeGuard.h>
@@ -51,11 +50,7 @@ namespace aeres
       this->thread.join();
     }
 
-    if (this->epfd != -1)
-    {
-      close(this->epfd);
-      this->epfd = -1;
-    }
+    this->eventQueue.reset();
 
     if (this->pipe[1] != -1)
     {
@@ -145,27 +140,24 @@ namespace aeres
       }
     });
 
-    this->epfd = epoll_create1(EPOLL_CLOEXEC);
-    return_if(this->epfd == -1);
+    this->eventQueue = std::make_unique<IoEventQueue>();
+    return_if(!this->eventQueue->Initialize());
 
-    struct epoll_event evt = {0};
-    evt.data.fd = this->pipe[1];
-    evt.events = EPOLLIN;
-    return_if(epoll_ctl(this->epfd, EPOLL_CTL_ADD, this->pipe[1], &evt));
+    return_if(!this->eventQueue->AddSubscription(this->pipe[1], IoEventQueue::EventType::READ, false));
 
     const size_t MAXEVENTS = 10;
-    struct epoll_event events[MAXEVENTS];
-    int nfd = 0;
+    IoEventQueue::Event events[MAXEVENTS];
+    size_t nfd = MAXEVENTS;
 
-    while (this->active && ((nfd = epoll_wait(epfd, events, MAXEVENTS, -1)) > 0 || errno == EINTR))
+    while(this->active && this->eventQueue->WaitForEvents(events, &nfd))
     {
-      for (int i = 0; i < nfd; ++i)
+      for (auto i = 0; i < nfd; ++i)
       {
-        bool error = ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP));
+        bool error = (events[i].type & IoEventQueue::EventType::ERROR);
 
-        if (events[i].data.fd == this->pipe[1])
+        if (events[i].fd == this->pipe[1])
         {
-          return_if(error || !(events[i].events & EPOLLIN));
+          return_if(error || !(events[i].type & IoEventQueue::EventType::READ));
 
           uint8_t signal = 0;
           ssize_t rtn = read(this->pipe[1], &signal, 1);
@@ -175,27 +167,27 @@ namespace aeres
         }
         else if (error)
         {
-          this->HandleError(events[i].data.fd);
+          this->HandleError(events[i].fd);
         }
         else
         {
           bool handled = false;
 
-          if (events[i].events & EPOLLOUT)
+          if (events[i].type & IoEventQueue::EventType::WRITE)
           {
-            this->OnSend(events[i].data.fd);
+            this->OnSend(events[i].fd);
             handled = true;
           }
 
-          if (events[i].events & EPOLLIN)
+          if (events[i].type & IoEventQueue::EventType::READ)
           {
-            this->OnReceive(events[i].data.fd);
+            this->OnReceive(events[i].fd);
             handled = true;
           }
 
           if (!handled)
           {
-            this->HandleError(events[i].data.fd);
+            this->HandleError(events[i].fd);
           }
         }
       }
@@ -239,25 +231,20 @@ namespace aeres
 
   void SocketDispatcher::HandleMessage(RegisterMessage * msg)
   {
-    assert(msg);
-    assert(this->epfd != -1);
-
     int fd = msg->connection->Fd();
 
     auto itr = this->connections.find(fd);
     if (itr == this->connections.end())
     {
-      struct epoll_event evt = {0};
-      evt.data.fd = fd;
-      evt.events = EPOLLIN | EPOLLET;
+      int eventType = IoEventQueue::EventType::READ;
       if (msg->initialBusy)
       {
-        evt.events |= EPOLLOUT;
+        eventType |= IoEventQueue::EventType::WRITE;
       }
 
-      if(epoll_ctl(this->epfd, EPOLL_CTL_ADD, fd, &evt) == -1)
+      if (!this->eventQueue->AddSubscription(fd, eventType, true))
       {
-        Log::Warning("Failed to monitor fd %d. (err=%d)", fd, errno);
+        Log::Warning("Failed to monitor fd %d. (err=%d)", fd, this->eventQueue->GetLastError());
         return;
       }
 
@@ -282,16 +269,12 @@ namespace aeres
 
   void SocketDispatcher::HandleMessage(DeleteMessage * msg)
   {
-    assert(msg);
-    assert(this->epfd != -1);
-
     int fd = msg->fd;
 
     auto itr = this->connections.find(fd);
     return_if(itr == this->connections.end());
 
-    struct epoll_event evt = {0};
-    if (epoll_ctl(this->epfd, EPOLL_CTL_DEL, fd, &evt) == -1)
+    if (!this->eventQueue->RemoveSubscription(fd))
     {
       Log::Warning("SocketDispatcher: Failed to remove monitor for fd: fd=%d", fd);
     }
@@ -336,8 +319,6 @@ namespace aeres
 
   void SocketDispatcher::TrySend(Entry & entry)
   {
-    assert(this->epfd != -1);
-
     int fd = entry.connection->Fd();
 
     return_if(entry.busyOut);
@@ -369,7 +350,7 @@ namespace aeres
         entry.sendBuf.ReadBuffer(nullptr, offset);
       }
 
-      if (len < 0 && (error == EAGAIN || error == EWOULDBLOCK))
+      if (error == EAGAIN || error == EWOULDBLOCK)
       {
         this->SetSendBusy(entry, true);
       }
@@ -390,23 +371,19 @@ namespace aeres
 
   void SocketDispatcher::SetSendBusy(Entry & entry, bool busy)
   {
-    assert(this->epfd != -1);
-
     return_if(entry.busyOut == busy);
 
     int fd = entry.connection->Fd();
 
     entry.busyOut = busy;
 
-    struct epoll_event evt = {0};
-    evt.data.fd = fd;
-    evt.events = EPOLLIN | EPOLLET;
+    int eventType = IoEventQueue::EventType::READ;
     if (busy)
     {
-      evt.events |= EPOLLOUT;
+      eventType |= IoEventQueue::EventType::WRITE;
     }
 
-    epoll_ctl(this->epfd, EPOLL_CTL_MOD, fd, &evt);
+    this->eventQueue->UpdateSubscription(fd, eventType, true);
   }
 
 

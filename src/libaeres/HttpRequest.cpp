@@ -24,6 +24,7 @@
 #include <curl/curl.h>
 #include <algorithm>
 #include <string.h>
+#include <aeres/PlatformUtil.h>
 
 namespace aeres
 {

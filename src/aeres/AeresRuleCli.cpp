@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "AeresRuleCli.h"
 #include "Options.h"
 #include "AeresEndpointApi.h"

@@ -102,6 +102,8 @@ namespace aeres
 
     bool resolveHost(const std::string & host, ::net::IPAddress & addr)
     {
+#if __linux__
+      // gethostbyname is not reentrant on linux, use gethostbyname_r instead
       char buf[BUFSIZ];
       struct hostent hostinfo = {0};
       struct hostent * ptr = nullptr;
@@ -115,6 +117,14 @@ namespace aeres
         addr = ::net::IPAddress(reinterpret_cast<const uint8_t *>(hostinfo.h_addr_list[0]), 4);
         return true;
       }
+#else
+      struct hostent * ptr = gethostbyname(host.c_str());
+      if (ptr && ptr->h_addrtype == AF_INET && ptr->h_addr_list && ptr->h_addr_list[0])
+      {
+        addr = ::net::IPAddress(reinterpret_cast<const uint8_t *>(ptr->h_addr_list[0]), 4);
+        return true;
+      }
+#endif
 
       Log::Error("Failed to resolve hostname %s.", host.c_str());
       return false;
