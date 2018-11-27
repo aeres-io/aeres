@@ -198,4 +198,26 @@ namespace aeres
     return rtn ? result : nullptr;
   }
 
+  AsyncResultPtr<Json::Value> AeresRuleApi::Update(const std::string & action, const std::string & domain, const std::string & port, const std::string & protocol)
+  {
+    AeresObject::CArgs args;
+    Json::Value value;
+    value["Action"] = action;
+    value["Domain"] = domain;
+    value["Port"] = port;
+    value["Protocol"] = protocol;
+
+    args["spec"] = value;
+
+    auto result = std::make_shared<AsyncResult<Json::Value>>();
+    bool rtn = this->Call("Update", args,
+      [result](Json::Value & response, bool error)
+      {
+        result->SetError(error);
+        result->Complete(std::move(response));
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
 }
