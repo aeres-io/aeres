@@ -350,7 +350,7 @@ namespace aeres
         entry.sendBuf.ReadBuffer(nullptr, offset);
       }
 
-      if (error == EAGAIN || error == EWOULDBLOCK)
+      if (len < 0 && (error == EAGAIN || error == EWOULDBLOCK))
       {
         this->SetSendBusy(entry, true);
       }

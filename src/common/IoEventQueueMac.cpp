@@ -60,16 +60,16 @@ namespace aeres
   {
     struct kevent evts[2];
     int nfd = 0;
-    int oneShotFlag = oneShot ? EV_ONESHOT : 0;
     if (eventType & IoEventQueue::EventType::READ)
     {
-      EV_SET(&evts[nfd++], fd, EVFILT_READ, EV_ADD | EV_ENABLE | oneShotFlag, 0, 0, (void *)(intptr_t)fd);
+      EV_SET(&evts[nfd++], fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, (void *)(intptr_t)fd);
     }
     else if (modify)
     {
       EV_SET(&evts[nfd++], fd, EVFILT_READ, EV_DELETE, 0, 0, (void *)(intptr_t)fd);
     }
 
+    int oneShotFlag = oneShot ? EV_ONESHOT : 0;
     if (eventType & IoEventQueue::EventType::WRITE)
     {
       EV_SET(&evts[nfd++], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | oneShotFlag, 0, 0, (void *)(intptr_t)fd);
