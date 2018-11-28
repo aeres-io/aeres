@@ -34,6 +34,8 @@ include(${ROOT}/Config.cmake)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(MACOSX TRUE)
+else()
+  set(LINUX TRUE)
 endif()
 
 
@@ -55,23 +57,23 @@ set(
 )
 
 
-if (DEFINED UNIX AND NOT DEFINED MACOSX)
-  set(
-    AERES_COMMON_SRC ${AERES_COMMON_SRC}
-
-    IoEventQueueLinux.cpp
-  )
-endif (DEFINED UNIX AND NOT DEFINED MACOSX)
-
-
 if (DEFINED MACOSX)
   set(
     AERES_COMMON_SRC ${AERES_COMMON_SRC}
 
     IoEventQueueMac.cpp
   )
+  add_definitions(-DOS_MACOSX)
 endif (DEFINED MACOSX)
 
+if (DEFINED LINUX)
+  set(
+    AERES_COMMON_SRC ${AERES_COMMON_SRC}
+
+    IoEventQueueLinux.cpp
+  )
+  add_definitions(-DOS_LINUX)
+endif (DEFINED LINUX)
 
 add_library(aeres-common STATIC ${AERES_COMMON_SRC})
 

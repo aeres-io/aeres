@@ -22,11 +22,11 @@
   SOFTWARE.
 */
 
-#ifndef SOCK_NONBLOCK
+#ifdef OS_MACOSX
 #include <fcntl.h>
 #define SOCK_NONBLOCK O_NONBLOCK
 #define SOCK_CLOEXEC O_CLOEXEC
-#endif
+#endif // OS_MACOSX
 
 #include <assert.h>
 #include <atomic>
