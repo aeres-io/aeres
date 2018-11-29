@@ -1,0 +1,8 @@
+Package: gear-sql
+Version: PACKAGE_VERSION
+Section: base
+Priority: optional
+Architecture: amd64
+Depends: mariadb-server
+Maintainer: FileGear <info@filegear.com>
+Description: Gear Database
