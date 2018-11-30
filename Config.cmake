@@ -67,7 +67,6 @@ else()
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
-
 # submodules
 
 if (NOT DEFINED ROOT_LIBQUIC)
