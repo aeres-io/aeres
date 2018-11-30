@@ -34,9 +34,11 @@ include(${ROOT}/Config.cmake)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(MACOSX TRUE)
-else()
-  set(LINUX TRUE)
-endif()
+else ()
+  if (DEFINED UNIX)
+    set(LINUX TRUE)
+  endif (DEFINED UNIX)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 set(

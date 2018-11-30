@@ -22,9 +22,7 @@
   SOFTWARE.
 */
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+
 #include <assert.h>
 #include <aeres/Util.h>
 #include <aeres/Log.h>
@@ -34,17 +32,21 @@
 
 namespace aeres
 {
-  SocketConnection::SocketConnection(SocketDispatcher * dispatcher, int fd)
+  SocketConnection::SocketConnection(SocketDispatcher * dispatcher, Socket fd)
     : dispatcher(dispatcher)
     , fd(fd)
     , closed(false)
     , closing(false)
+#ifdef WIN32
+    , connectNeeded(false)
+    , connecting(false)
+#endif
 #ifdef DEBUG
     , totalBytesSent(0)
     , totalBytesReceived(0)
 #endif
   {
-    assert(dispatcher && fd != -1);
+    assert(dispatcher && IsSocketValid(fd));
 
     Log::Debug("SocketConnection::SocketConnection: this=%p", this);
   }
@@ -59,7 +61,7 @@ namespace aeres
 
   bool SocketConnection::Send(Buffer buffer)
   {
-    return_false_if(this->fd == -1);
+    return_false_if(!IsSocketValid(this->fd));
 
     Log::Debug("SocketConnection::Send: fd=%d buffer.size=%llu", this->fd, (long long unsigned)buffer.Size());
 
@@ -78,7 +80,7 @@ namespace aeres
 
   bool SocketConnection::SetRecvCallback(RecvCallback callback)
   {
-    return_false_if(this->fd == -1);
+    return_false_if(!IsSocketValid(this->fd));
 
     SocketDispatcher::Listener listener = nullptr;
 
@@ -110,16 +112,16 @@ namespace aeres
   {
     this->closed = true;
 
-    return_if(this->fd == -1);
+    return_if(!IsSocketValid(this->fd));
 
-    shutdown(this->fd, SHUT_RDWR);
-    close(this->fd);
+    ShutdownSocket(this->fd);
+    CloseSocket(this->fd);
 
     Log::Verbose("Socket connection closed: fd=%d", this->fd);
 
     this->dispatcher->Delete(this->fd);
 
-    this->fd = -1;
+    this->fd = INVALID_SOCKET;
   }
 
   void SocketConnection::Shutdown()

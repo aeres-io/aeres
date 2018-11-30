@@ -24,62 +24,26 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <stdarg.h>
-
-#ifdef ERROR
-#pragma message("Log.h: Name conflict detected on symbol \"ERROR\". Previous definition has been disabled.")
-#undef ERROR
+#ifndef WIN32
+#error("SocketDispatcherWin.h should only be included in WINDOWS build.")
 #endif
+
+#include <aeres/SocketDispatcher.h>
 
 namespace aeres
 {
-  enum class LogLevel
-  {
-    DBG = 0,
-    VERBOSE = 1,
-    INFOMATION = 2,
-    WARNING = 3,
-    ERROR = 4,
-    CRITICAL = 5
-  };
-
-  class Log
+  class SocketDispatcherImpl : public SocketDispatcher
   {
   public:
 
-    static LogLevel GetDefaultLevel();
+    ~SocketDispatcherImpl() override;
 
-    static void SetDefaultLevel(LogLevel val);
+    bool Initialize() override;
 
-    static FILE * GetTarget();
+    bool Register(SocketConnectionPtr connection, Listener onReceive, bool initialBusy = false) override;
 
-    static void SetTarget(FILE * val);
+    void Delete(Socket fd) override;
 
-    static void Write(LogLevel level, const char * format, ...);
-
-    static void Debug(const char * format, ...);
-
-    static void Verbose(const char * format, ...);
-
-    static void Information(const char * format, ...);
-
-    static void Warning(const char * format, ...);
-
-    static void Error(const char * format, ...);
-
-    static void Critical(const char * format, ...);
-
-    static LogLevel LogLevelFromInt(int value);
-
-  private:
-
-    static void Write(LogLevel level, const char * format, va_list argptr);
-
-  private:
-
-    static LogLevel defaultLevel;
-
-    static FILE * fp;
+    bool Send(SocketConnectionPtr connection, Buffer data) override;
   };
 }

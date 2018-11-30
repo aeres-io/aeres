@@ -27,6 +27,7 @@
 #include <memory>
 #include <atomic>
 #include <aeres/Connection.h>
+#include <aeres/Socket.h>
 
 namespace aeres
 {
@@ -36,7 +37,7 @@ namespace aeres
   {
   public:
 
-    SocketConnection(SocketDispatcher * dispatcher, int fd);
+    SocketConnection(SocketDispatcher * dispatcher, Socket fd);
 
     ~SocketConnection() override;
 
@@ -54,15 +55,30 @@ namespace aeres
 
     bool IsShuttingDown() const     { return this->closing; }
 
+#ifdef WIN32
+    bool IsConnectNeeded() const    { return this->connectNeeded; }
+
+    bool IsConnecting() const       { return this->connecting; }
+
+    void SetConnetNeeded(bool val)  { this->connectNeeded = val; }
+
+    void SetConnecting(bool val)    { this->connecting = val; }
+#endif
+
   private:
 
     SocketDispatcher * dispatcher;
 
-    int fd;
+    Socket fd;
 
     std::atomic<bool> closed;
 
     std::atomic<bool> closing;
+
+#ifdef WIN32
+    std::atomic<bool> connectNeeded;
+    std::atomic<bool> connecting;
+#endif
 
 #ifdef DEBUG
 

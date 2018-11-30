@@ -24,62 +24,68 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <stdarg.h>
-
-#ifdef ERROR
-#pragma message("Log.h: Name conflict detected on symbol \"ERROR\". Previous definition has been disabled.")
-#undef ERROR
+#ifndef WIN32
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#else
+#include <WinSock2.h>
+#include <aeres/PlatformUtil.h>
 #endif
+
 
 namespace aeres
 {
-  enum class LogLevel
+#ifndef WIN32
+  using Socket = int;
+  enum { INVALID_SOCKET = -1 };
+#else
+  using Socket = SOCKET;
+  using socklen_t = int;
+#endif
+
+  inline bool IsSocketValid(Socket handle)
   {
-    DBG = 0,
-    VERBOSE = 1,
-    INFOMATION = 2,
-    WARNING = 3,
-    ERROR = 4,
-    CRITICAL = 5
-  };
+    return handle != INVALID_SOCKET;
+  }
 
-  class Log
+
+  inline int CloseSocket(Socket handle)
   {
-  public:
+#ifndef WIN32
+    return close(handle);
+#else
+    return closesocket(handle);
+#endif
+  }
 
-    static LogLevel GetDefaultLevel();
 
-    static void SetDefaultLevel(LogLevel val);
+  inline int ShutdownSocket(Socket handle)
+  {
+#ifndef WIN32
+    return shutdown(handle, SHUT_RDWR);
+#else
+    return shutdown(handle, SD_BOTH);
+#endif
+  }
 
-    static FILE * GetTarget();
 
-    static void SetTarget(FILE * val);
+  inline int SetSockOpt(Socket handle, int level, int name, const void * value, socklen_t len)
+  {
+#ifndef WIN32
+    return setsockopt(handle, level, name, value, len);
+#else
+    return setsockopt(handle, level, name, static_cast<const char *>(value), len);
+#endif
+  }
 
-    static void Write(LogLevel level, const char * format, ...);
 
-    static void Debug(const char * format, ...);
-
-    static void Verbose(const char * format, ...);
-
-    static void Information(const char * format, ...);
-
-    static void Warning(const char * format, ...);
-
-    static void Error(const char * format, ...);
-
-    static void Critical(const char * format, ...);
-
-    static LogLevel LogLevelFromInt(int value);
-
-  private:
-
-    static void Write(LogLevel level, const char * format, va_list argptr);
-
-  private:
-
-    static LogLevel defaultLevel;
-
-    static FILE * fp;
-  };
+  inline int GetLastSocketError()
+  {
+#ifndef WIN32
+    return errno;
+#else
+    return WSAGetLastError();
+#endif
+  }
 }

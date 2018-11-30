@@ -30,10 +30,9 @@
 
 #include <assert.h>
 #include <atomic>
-#include <unistd.h>
-#include <netinet/in.h>
 #include <aeres/ScopeGuard.h>
 #include <aeres/Util.h>
+#include <aeres/Socket.h>
 #include <aeres/SocketConnection.h>
 #include <aeres/SocketDispatcher.h>
 #include <aeres/Config.h>
@@ -73,7 +72,7 @@ namespace aeres
   }
 
 
-  std::shared_ptr<Connection> ConnectionFactory::CreateSocketConnection(int fd, bool autoStart) const
+  std::shared_ptr<Connection> ConnectionFactory::CreateSocketConnection(Socket fd, bool autoStart) const
   {
     return_val_if(nullptr, !g_socketDispatcher);
 
@@ -96,21 +95,24 @@ namespace aeres
   {
     return_val_if(nullptr, !g_socketDispatcher || !addr );
 
-    int fd = -1;
+    Socket fd = INVALID_SOCKET;
 
     ScopeGuard guard([fd]() {
-      if (fd != -1)
+      if (IsSocketValid(fd))
       {
-        close(fd);
+        CloseSocket(fd);
       }
     });
 
 #ifdef __linux__
     fd = socket(addr->sa_family, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
-    return_val_if(nullptr, fd == -1);
+    return_val_if(nullptr, !IsSocketValid(fd));
+#elif defined(WIN32)
+    fd = socket(addr->sa_family, SOCK_STREAM, IPPROTO_TCP);
+    return_val_if(nullptr, !IsSocketValid(fd));
 #else
     fd = socket(addr->sa_family, SOCK_STREAM, 0);
-    return_val_if(nullptr, fd == -1);
+    return_val_if(nullptr, !IsSocketValid(fd));
 
     int flags = fcntl(fd, F_GETFL, 0);
     return_val_if(nullptr, flags < 0);
@@ -119,11 +121,17 @@ namespace aeres
 
     SetSocketOptions(fd);
 
+#ifndef WIN32
     return_val_if(nullptr, connect(fd, addr, len) == -1 && errno != EINPROGRESS);
+#endif
 
     guard.Reset();
 
     auto conn = std::make_shared<SocketConnection>(&g_socketDispatcher->dispatcher, fd);
+
+#ifdef WIN32
+    conn->SetConnetNeeded(true);
+#endif
 
     if (autoStart)
     {
@@ -134,17 +142,29 @@ namespace aeres
   }
 
 
-  void ConnectionFactory::SetSocketOptions(int fd)
+  void ConnectionFactory::SetSocketOptions(Socket fd)
   {
+#ifndef WIN32
     int flags = 1;
-    setsockopt(fd, IPPROTO_TCP, 1 /* TCP_NODELAY */, &flags, sizeof(flags));
-    setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags));
-
+#else
+    BOOL flags = 1;
+#endif
+    SetSockOpt(fd, IPPROTO_TCP, 1 /* TCP_NODELAY */, &flags, sizeof(flags));
+    SetSockOpt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags));
+    
+#ifndef WIN32
     struct timeval tv = {0};
     tv.tv_sec = Config::SendTimeout();
-    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+#else
+    DWORD tv = Config::SendTimeout() * 1000;
+#endif
+    SetSockOpt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
 
+#ifndef WIN32
     tv.tv_sec = Config::RecvTimeout();
-    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+#else
+    tv = Config::RecvTimeout() * 1000;
+#endif
+    SetSockOpt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
   }
 }

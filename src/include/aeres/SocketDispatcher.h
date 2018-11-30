@@ -24,16 +24,9 @@
 
 #pragma once
 
-#include <map>
-#include <set>
-#include <thread>
-#include <memory>
-#include <atomic>
 #include <aeres/Buffer.h>
-#include <aeres/BufferStream.h>
-#include <aeres/LockFreeQueue.h>
-#include <aeres/IoEventQueue.h>
 #include <aeres/SocketConnection.h>
+
 
 namespace aeres
 {
@@ -43,90 +36,16 @@ namespace aeres
 
     using Listener = std::function<void(SocketDispatcher *, SocketConnection *, const void *, size_t)>;
 
-  private:
-
-    enum class MessageType
-    {
-      REGISTER,
-      DELETE,
-      SEND
-    };
-
-    struct Message
-    {
-      MessageType type;
-
-      virtual ~Message() = default;
-    };
-
-    struct RegisterMessage : public Message
-    {
-      Listener onReceive;
-      SocketConnectionPtr connection;
-      bool initialBusy;
-    };
-
-    struct DeleteMessage : public Message
-    {
-      int fd;
-    };
-
-    struct SendMessage : public Message
-    {
-      Buffer data;
-      SocketConnectionPtr connection;
-    };
-
-    struct Entry
-    {
-      SocketConnectionPtr connection;
-      Listener onReceive;
-      BufferStream sendBuf;
-      bool busyOut = false;
-    };
-
   public:
 
-    ~SocketDispatcher();
+    virtual ~SocketDispatcher() = default;
 
-    bool Initialize();
+    virtual bool Initialize() = 0;
 
-    bool Register(SocketConnectionPtr connection, Listener onReceive, bool initialBusy = false);
+    virtual bool Register(SocketConnectionPtr connection, Listener onReceive, bool initialBusy = false) = 0;
 
-    void Delete(int fd);
+    virtual void Delete(Socket fd) = 0;
 
-    bool Send(SocketConnectionPtr connection, Buffer data);
-
-  private:
-
-    void ThreadProc();
-
-    void HandleMessages();
-    void HandleMessage(RegisterMessage * msg);
-    void HandleMessage(DeleteMessage * msg);
-    void HandleMessage(SendMessage * msg);
-
-    void TrySend(Entry & entry);
-    void SetSendBusy(Entry & entry, bool busy);
-
-    void HandleError(int fd);
-    void HandleError(SocketConnectionPtr connection);
-
-    void OnSend(int fd);
-    void OnReceive(int fd);
-
-  private:
-
-    std::unique_ptr<IoEventQueue> eventQueue;
-
-    std::map<int, Entry> connections;
-
-    LockFreeQueue<Message *> messages;
-
-    std::thread thread;
-
-    int pipe[2] = { -1, -1 };
-
-    std::atomic<bool> active{true};
+    virtual bool Send(SocketConnectionPtr connection, Buffer data) = 0;
   };
 }
