@@ -17,7 +17,7 @@ OUTDIR = $(ROOT)/out
 
 AERES_VERSION_MAJOR = 1
 AERES_VERSION_MINOR = 0
-AERES_VERSION_BUILD = 1
+AERES_VERSION_BUILD = 2
 
 LINUX_CODENAME=$(shell lsb_release -c -s)
 LINUX_RELEASE=$(shell lsb_release -r -s)
