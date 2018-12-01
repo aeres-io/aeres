@@ -91,3 +91,28 @@ else ()
   set(LIBEXT "lib")
   set(DLLEXT "dll")
 endif (DEFINED UNIX)
+
+if (DEFINED WINDOWS)
+  add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_UNICODE -DUNICODE -DUCHAR_TYPE=wchar_t -DWIN32 -D__WIN32__ -D_WIN32)
+
+  if (${TARGET_ARCH_ABI} STREQUAL "x86_64")
+    add_definitions(-DWIN64 -D__WIN64__ -D_WIN64)
+  endif (${TARGET_ARCH_ABI} STREQUAL "x86_64")
+
+  if (NOT DEFINED BUILDTOOLS)
+    set(BUILDTOOLS ${ROOT}/../buildtools-win)
+    message("-- BUILDTOOLS not defined. Use default value ${BUILDTOOLS}")
+  endif (NOT DEFINED BUILDTOOLS)
+
+  if (NOT DEFINED CURL_ROOT)
+    set(CURL_ROOT ${BUILDTOOLS}/${TARGET_ARCH_ABI}/curl)
+  endif (NOT DEFINED CURL_ROOT)
+
+  if (NOT DEFINED READLINE_ROOT)
+    set(READLINE_ROOT ${BUILDTOOLS}/${TARGET_ARCH_ABI}/readline)
+  endif (NOT DEFINED READLINE_ROOT)
+
+  if (NOT DEFINED OPENSSL_ROOT)
+    set(OPENSSL_ROOT ${BUILDTOOLS}/${TARGET_ARCH_ABI}/openssl)
+  endif (NOT DEFINED OPENSSL_ROOT)
+endif (DEFINED WINDOWS)

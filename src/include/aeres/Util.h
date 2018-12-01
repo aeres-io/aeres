@@ -28,6 +28,19 @@
 #define return_val_if(__val, __cond) if (__cond) return __val;
 #define return_false_if(__cond) return_val_if(false, __cond)
 #define return_true_if(__cond) return_val_if(true, __cond)
+#define return_null_if(__cond) return_val_if(nullptr, __cond)
 
 #define unused(expr) (void)(expr)
 #define unused_result(expr) do { auto _v = (expr); (void)_v; } while(false)
+
+#ifdef DEBUG
+#define fail_if(__cond) assert(!(__cond))
+#define fail_val_if(__val, __cond) fail_if(__cond)
+#define fail_false_if(__val, __cond) fail_if(__cond)
+#define fail_null_if(__val, __cond) fail_if(__cond)
+#else
+#define fail_if(__cond) if (__cond) { Log::Critical("ASSERT FAILURE: %s(%d)", __FILE__, __LINE__); return; }
+#define fail_val_if(__val, __cond) if (__cond) { Log::Critical("ASSERT FAILURE: %s(%d)", __FILE__, __LINE__); return __val; }
+#define fail_false_if(__cond) fail_val_if(false, __cond)
+#define fail_null_if(__cond) fail_val_if(nullptr, __cond)
+#endif

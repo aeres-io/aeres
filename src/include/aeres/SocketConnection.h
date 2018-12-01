@@ -49,7 +49,7 @@ namespace aeres
 
     void Shutdown() override;
 
-    int Fd() const                  { return this->fd; }
+    Socket Fd() const                  { return this->fd; }
 
     bool IsClosed() const override  { return this->closed; }
 
@@ -60,9 +60,30 @@ namespace aeres
 
     bool IsConnecting() const       { return this->connecting; }
 
-    void SetConnetNeeded(bool val)  { this->connectNeeded = val; }
+    void SetConnectNeeded(bool val) { this->connectNeeded = val; }
 
     void SetConnecting(bool val)    { this->connecting = val; }
+
+    struct sockaddr * Addr() const  { return this->addr; }
+
+    socklen_t AddrLen() const       { return this->addrLen; }
+
+    void SetAddr(const struct sockaddr * val, socklen_t len)
+    {
+      if (this->addr)
+      {
+        delete reinterpret_cast<uint8_t *>(this->addr);
+        this->addr = nullptr;
+        this->addrLen = 0;
+      }
+
+      if (val && len > 0)
+      {
+        this->addr = reinterpret_cast<struct sockaddr *>(new uint8_t[len]);
+        this->addrLen = len;
+        memcpy(this->addr, val, len);
+      }
+    }
 #endif
 
   private:
@@ -78,6 +99,8 @@ namespace aeres
 #ifdef WIN32
     std::atomic<bool> connectNeeded;
     std::atomic<bool> connecting;
+    struct sockaddr * addr = nullptr;
+    socklen_t addrLen = 0;
 #endif
 
 #ifdef DEBUG

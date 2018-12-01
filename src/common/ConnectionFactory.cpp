@@ -34,16 +34,21 @@
 #include <aeres/Util.h>
 #include <aeres/Socket.h>
 #include <aeres/SocketConnection.h>
-#include <aeres/SocketDispatcher.h>
 #include <aeres/Config.h>
 #include <aeres/Log.h>
 #include <aeres/ConnectionFactory.h>
+
+#ifndef WIN32
+#include "SocketDispatcherPosix.h"
+#else
+#include "SocketDispatcherWin.h"
+#endif
 
 namespace aeres
 {
   struct SocketDispatcherWrapper
   {
-    SocketDispatcher dispatcher;
+    SocketDispatcherImpl dispatcher;
     std::atomic<int> nrefs{1};
   };
 
@@ -130,7 +135,8 @@ namespace aeres
     auto conn = std::make_shared<SocketConnection>(&g_socketDispatcher->dispatcher, fd);
 
 #ifdef WIN32
-    conn->SetConnetNeeded(true);
+    conn->SetConnectNeeded(true);
+    conn->SetAddr(addr, len);
 #endif
 
     if (autoStart)

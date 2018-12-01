@@ -26,7 +26,7 @@
 #include <aeres/ScopeGuard.h>
 #include <aeres/Log.h>
 #include <aeres/Util.h>
-#include <aeres/SocketDispatcherPosix.h>
+#include "SocketDispatcherPosix.h"
 
 namespace aeres
 {

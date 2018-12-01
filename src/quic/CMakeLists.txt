@@ -48,4 +48,6 @@ include_directories("${ROOT_LIBQUIC}/src/quic/gen")
 include_directories("${ROOT_LIBQUIC}/src/quic/third_party/protobuf/src")
 include_directories("${ROOT_LIBQUIC}/src/third_party/boringssl/src/include")
 
+add_definitions(-DCOMPONENT_BUILD)
+
 

@@ -23,7 +23,12 @@
 */
 
 
-#include <aeres/SocketDispatcherWin.h>
+#include <aeres/PlatformUtil.h>
+#include <aeres/Util.h>
+#include <aeres/Log.h>
+
+#include "SocketDispatcherWin.h"
+#include <MSWSock.h>
 
 namespace aeres
 {
@@ -31,13 +36,9 @@ namespace aeres
   {
     this->active = false;
 
-    if (this->pipe[0] != -1)
+    if (this->iocp)
     {
-      uint8_t signal = 0;
-      unused_result(write(this->pipe[0], &signal, sizeof(signal)) == sizeof(signal));
-
-      close(this->pipe[0]);
-      this->pipe[0] = -1;
+      unused_result(this->NotifyMessage());
     }
 
     if (this->thread.joinable())
@@ -45,28 +46,20 @@ namespace aeres
       this->thread.join();
     }
 
-    this->eventQueue.reset();
-
-    if (this->pipe[1] != -1)
+    if (this->iocp)
     {
-      close(this->pipe[1]);
-      this->pipe[1] = -1;
-    }
-
-    Message * message = nullptr;
-    while (this->messages.Consume(message))
-    {
-      if (message)
-      {
-        delete message;
-      }
+      CloseHandle(this->iocp);
+      this->iocp = NULL;
     }
   }
 
 
   bool SocketDispatcherImpl::Initialize()
   {
-    return_false_if(socketpair(AF_UNIX, SOCK_DGRAM, 0, this->pipe) == -1);
+    this->iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
+    return_false_if(this->iocp == NULL);
+
+    ZeroMemory(&this->messageOverlapped, sizeof(this->messageOverlapped));
 
     this->thread = std::thread(std::bind(&SocketDispatcherImpl::ThreadProc, this));
 
@@ -76,43 +69,41 @@ namespace aeres
 
   bool SocketDispatcherImpl::Register(SocketConnectionPtr connection, Listener onReceive, bool initialBusy)
   {
-    return_false_if(this->pipe[0] == -1 || !connection || connection->Fd() == -1);
+    return_false_if(!this->iocp || !connection || connection->Fd() == -1);
 
     auto message = std::make_unique<RegisterMessage>();
-    message->type = MessageType::REGISTER;
+    message->type = MessageType::REG;
     message->connection = connection;
-    message->onReceive =onReceive;
+    message->onReceive = onReceive;
     message->initialBusy = initialBusy;
 
     return_false_if(!this->messages.Produce(message.get()));
     message.release();
 
-    uint8_t signal = 0;
-    return write(this->pipe[0], &signal, sizeof(signal)) == sizeof(signal);
+    return this->NotifyMessage();
   }
 
 
   void SocketDispatcherImpl::Delete(Socket fd)
   {
-    return_if(this->pipe[0] == -1 || fd == -1);
+    return_if(!this->iocp || fd == -1);
 
     auto message = std::make_unique<DeleteMessage>();
-    message->type = MessageType::DELETE;
+    message->type = MessageType::DEL;
     message->fd = fd;
 
     return_if(!this->messages.Produce(message.get()));
     message.release();
 
-    uint8_t signal = 0;
-    unused_result(write(this->pipe[0], &signal, sizeof(signal)));
+    unused_result(this->NotifyMessage());
   }
 
 
   bool SocketDispatcherImpl::Send(SocketConnectionPtr connection, Buffer data)
   {
-    return_false_if(this->pipe[0] == -1 || !connection || connection->Fd() == -1);
+    return_false_if(!this->iocp || !connection || connection->Fd() == -1);
 
-    auto message = std::make_unique<SendMessage>();
+    auto message = std::make_unique<SendDataMessage>();
     message->type = MessageType::SEND;
     message->connection = connection;
     message->data = std::move(data);
@@ -120,76 +111,118 @@ namespace aeres
     return_false_if(!this->messages.Produce(message.get()));
     message.release();
 
-    uint8_t signal = 0;
-    return write(this->pipe[0], &signal, sizeof(signal)) == sizeof(signal);
+    return this->NotifyMessage();
   }
 
 
   void SocketDispatcherImpl::ThreadProc()
   {
-    ScopeGuard guard([this]() {
-      if (this->pipe[1] != -1)
-      {
-        close(this->pipe[1]);
-        this->pipe[1] = -1;
-      }
-    });
-
-    this->eventQueue = std::make_unique<IoEventQueue>();
-    return_if(!this->eventQueue->Initialize());
-
-    return_if(!this->eventQueue->AddSubscription(this->pipe[1], IoEventQueue::EventType::READ, false));
-
-    const size_t MAXEVENTS = 10;
-    IoEventQueue::Event events[MAXEVENTS];
-    size_t nfd = MAXEVENTS;
-
-    while(this->active && this->eventQueue->WaitForEvents(events, &nfd))
+    while (this->active)
     {
-      for (auto i = 0; i < nfd; ++i)
+      DWORD nbytes = 0;
+      ULONG_PTR ckey = 0;
+      OVERLAPPED * overlapped = nullptr;
+      if (!GetQueuedCompletionStatus(this->iocp, &nbytes, &ckey, &overlapped, INFINITE))
       {
-        bool error = (events[i].type & IoEventQueue::EventType::ERROR);
+        break;
+      }
 
-        if (events[i].fd == this->pipe[1])
+      if (ckey == reinterpret_cast<ULONG_PTR>(this))
+      {
+        this->HandleMessages();
+      }
+
+      Socket fd = static_cast<Socket>(ckey);
+      auto itr = this->connections.find(fd);
+      if (itr == this->connections.end())
+      {
+        Log::Debug("SocketDispatcherImpl: Got event from unknown fd %d.", fd);
+        continue;
+      }
+
+      auto & entry = itr->second;
+      size_t evt = 0;
+      for (evt = 0; evt < sizeof(entry.contexts) / sizeof(CompletionContext); ++evt)
+      {
+        if (&entry.contexts[evt].overlapped == overlapped)
         {
-          return_if(error || !(events[i].type & IoEventQueue::EventType::READ));
-
-          uint8_t signal = 0;
-          ssize_t rtn = read(this->pipe[1], &signal, 1);
-          return_if(rtn == 0 || (rtn < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR));
-
-          this->HandleMessages();
+          break;
         }
-        else if (error)
+      }
+
+      if (evt >= static_cast<size_t>(CompletionContextType::__MAX__))
+      {
+        Log::Debug("SocketDispatcherImpl: Got event from unknown type %u for fd $d.", evt, fd);
+        continue;
+      }
+
+      switch (static_cast<CompletionContextType>(evt))
+      {
+        case CompletionContextType::CONNECT:
         {
-          this->HandleError(events[i].fd);
+          this->OnConnect(fd);
+          break;
         }
-        else
+
+        case CompletionContextType::SEND:
         {
-          bool handled = false;
-
-          if (events[i].type & IoEventQueue::EventType::WRITE)
-          {
-            this->OnSend(events[i].fd);
-            handled = true;
-          }
-
-          if (events[i].type & IoEventQueue::EventType::READ)
-          {
-            this->OnReceive(events[i].fd);
-            handled = true;
-          }
-
-          if (!handled)
-          {
-            this->HandleError(events[i].fd);
-          }
+          this->OnSend(fd, nbytes);
+          break;
         }
+
+        case CompletionContextType::RECV:
+        {
+          this->OnReceive(fd, nbytes);
+          break;
+        }
+
+        default:
+          break;
       }
     }
+
+    for (const auto & connection : this->connections)
+    {
+      connection.second.connection->Close();
+    }
+  }
+  
+
+  bool SocketDispatcherImpl::ConnectSocket(Entry & entry)
+  {
+    static LPFN_CONNECTEX lpfnConnectEx = nullptr;
+    if (!lpfnConnectEx)
+    {
+      DWORD nbytes = 0;
+      GUID guidConnectEx = WSAID_CONNECTEX;
+      if (SOCKET_ERROR == WSAIoctl(entry.connection->Fd(),
+          SIO_GET_EXTENSION_FUNCTION_POINTER,
+          &guidConnectEx, sizeof(guidConnectEx),
+          &lpfnConnectEx, sizeof(lpfnConnectEx),
+          &nbytes, nullptr, nullptr))
+      {
+        Log::Critical("SocketDispatcherImpl: Failed to load ConnectEx, error=%d.", WSAGetLastError());
+        return false;
+      }
+    }
+
+    if (!lpfnConnectEx(entry.connection->Fd(),
+                       entry.connection->Addr(), entry.connection->AddrLen(),
+                       nullptr, 0, nullptr,
+                       &entry.contexts[static_cast<size_t>(CompletionContextType::CONNECT)].overlapped))
+    {
+      int errorCode = WSAGetLastError();
+      if (errorCode != ERROR_IO_PENDING)
+      {
+        Log::Verbose("SocketDispatcherImpl::ConnectSocket: Failed to connect socket. this=%p, fd=%d, err=%d", this, entry.connection->Fd(), errorCode);
+        return false;
+      }
+    }
+
+    return true;
   }
 
-
+  
   void SocketDispatcherImpl::HandleMessages()
   {
     Message * msg = nullptr;
@@ -197,13 +230,13 @@ namespace aeres
     {
       switch (msg->type)
       {
-        case MessageType::REGISTER:
+        case MessageType::REG:
         {
           this->HandleMessage(static_cast<RegisterMessage *>(msg));
           break;
         }
 
-        case MessageType::DELETE:
+        case MessageType::DEL:
         {
           this->HandleMessage(static_cast<DeleteMessage *>(msg));
           break;
@@ -211,7 +244,7 @@ namespace aeres
 
         case MessageType::SEND:
         {
-          this->HandleMessage(static_cast<SendMessage *>(msg));
+          this->HandleMessage(static_cast<SendDataMessage *>(msg));
           break;
         }
 
@@ -226,26 +259,33 @@ namespace aeres
 
   void SocketDispatcherImpl::HandleMessage(RegisterMessage * msg)
   {
-    int fd = msg->connection->Fd();
+    auto fd = msg->connection->Fd();
 
     auto itr = this->connections.find(fd);
     if (itr == this->connections.end())
     {
-      int eventType = IoEventQueue::EventType::READ;
-      if (msg->initialBusy)
+      sockaddr_in addr;
+      ZeroMemory(&addr, sizeof(sockaddr_in));
+      if (bind(fd, (sockaddr *)&addr, sizeof(sockaddr_in)) != 0)
       {
-        eventType |= IoEventQueue::EventType::WRITE;
+        Log::Verbose("SocketDispatcher: fd %d failed to bind to local address.", fd);
+        return;
       }
 
-      if (!this->eventQueue->AddSubscription(fd, eventType, true))
+      if (!CreateIoCompletionPort((HANDLE)fd, this->iocp, fd, 0))
       {
-        Log::Warning("Failed to monitor fd %d. (err=%d)", fd, this->eventQueue->GetLastError());
+        Log::Verbose("SocketDispatcher: failed to register fd %d to completion port.", fd);
         return;
       }
 
       this->connections[fd] = Entry();
       itr = this->connections.find(fd);
       itr->second.connection = msg->connection;
+      ZeroMemory(&itr->second.contexts, sizeof(itr->second.contexts));
+      if (msg->initialBusy)
+      {
+        itr->second.busyOut = true;
+      }
     }
     else if (itr->second.connection.get() != msg->connection.get())
     {
@@ -257,22 +297,30 @@ namespace aeres
 
     entry.onReceive = msg->onReceive;
 
-    // Immediately try receive once since we may have some missing messages before we set up the epoll
-    this->OnReceive(fd);
+    if (entry.connection->IsConnectNeeded())
+    {
+      entry.connection->SetConnecting(true);
+      entry.connection->SetConnectNeeded(false);
+      if (!this->ConnectSocket(entry))
+      {
+        Log::Verbose("SocketDispatcher: failed to connect to socket %d.", fd);
+        this->HandleError(entry.connection);
+      }
+    }
+    else if (!entry.connection->IsConnecting() && entry.onReceive)
+    {
+      // Kick off receive
+      this->OnReceive(fd, 0);
+    }
   }
 
 
   void SocketDispatcherImpl::HandleMessage(DeleteMessage * msg)
   {
-    int fd = msg->fd;
+    auto fd = msg->fd;
 
     auto itr = this->connections.find(fd);
     return_if(itr == this->connections.end());
-
-    if (!this->eventQueue->RemoveSubscription(fd))
-    {
-      Log::Warning("SocketDispatcher: Failed to remove monitor for fd: fd=%d", fd);
-    }
 
     if (itr->second.onReceive)
     {
@@ -283,11 +331,11 @@ namespace aeres
   }
 
 
-  void SocketDispatcherImpl::HandleMessage(SendMessage * msg)
+  void SocketDispatcherImpl::HandleMessage(SendDataMessage * msg)
   {
-    assert(msg);
+    fail_if(!msg);
 
-    int fd = msg->connection->Fd();
+    auto fd = msg->connection->Fd();
 
     auto itr = this->connections.find(fd);
     if(itr == this->connections.end())
@@ -314,44 +362,40 @@ namespace aeres
 
   void SocketDispatcherImpl::TrySend(Entry & entry)
   {
-    int fd = entry.connection->Fd();
+    auto fd = entry.connection->Fd();
 
-    return_if(entry.busyOut);
+    return_if(entry.busyOut || entry.connection->IsConnecting() || entry.connection->IsClosed());
 
-    while (entry.sendBuf.Size() > 0)
+    auto & context = entry.contexts[static_cast<size_t>(CompletionContextType::SEND)];
+
+    int rtn = 0;
+    while (rtn == 0 && entry.sendBuf.Size() > 0)
     {
-      uint8_t buf[8192];
-      size_t size = entry.sendBuf.PeekBuffer(buf, sizeof(buf));
-      size_t offset = 0;
-      ssize_t len = 0;
+      context.wsaSendBuf.len = entry.sendBuf.PeekBuffer(context.sendBuf, sizeof(context.sendBuf));
+      context.wsaSendBuf.buf = context.sendBuf;
+      DWORD offset = 0;
 
-      while (offset < size)
+      rtn = WSASend(fd, &context.wsaSendBuf, 1, &offset, 0, &context.overlapped, nullptr);
+      if (rtn == SOCKET_ERROR)
       {
-        if (((len = write(fd, buf + offset, size - offset)) < 0 && errno != EINTR) || len == 0)
+        int errorCode = WSAGetLastError();
+        if (errorCode != WSA_IO_PENDING && errorCode != WSAEWOULDBLOCK)
         {
-          break;
+          Log::Verbose("SocketDispatcherImpl::TrySend: Failed to send data on fd %d. error=%d", fd, errorCode);
+          this->HandleError(entry.connection);
+          return;
         }
-
-        if (len > 0)
+        else
         {
-          offset += len;
+          entry.busyOut = true;
         }
       }
-
-      int error = errno;
-
-      if (offset > 0)
+      else if (rtn == 0 && offset > 0)
       {
         entry.sendBuf.ReadBuffer(nullptr, offset);
       }
-
-      if (len < 0 && (error == EAGAIN || error == EWOULDBLOCK))
+      else
       {
-        this->SetSendBusy(entry, true);
-      }
-      else if (len <= 0)
-      {
-        this->HandleError(entry.connection);
         break;
       }
     }
@@ -364,39 +408,21 @@ namespace aeres
   }
 
 
-  void SocketDispatcherImpl::SetSendBusy(Entry & entry, bool busy)
-  {
-    return_if(entry.busyOut == busy);
-
-    int fd = entry.connection->Fd();
-
-    entry.busyOut = busy;
-
-    int eventType = IoEventQueue::EventType::READ;
-    if (busy)
-    {
-      eventType |= IoEventQueue::EventType::WRITE;
-    }
-
-    this->eventQueue->UpdateSubscription(fd, eventType, true);
-  }
-
-
   void SocketDispatcherImpl::HandleError(SocketConnectionPtr connection)
   {
-    assert(connection);
+    fail_if(!connection);
 
     DeleteMessage args;
-    args.type = MessageType::DELETE;
+    args.type = MessageType::DEL;
     args.fd = connection->Fd();
 
     this->HandleMessage(&args);
   }
 
 
-  void SocketDispatcherImpl::HandleError(int fd)
+  void SocketDispatcherImpl::HandleError(Socket fd)
   {
-    assert(fd != -1);
+    fail_if(fd == INVALID_SOCKET);
 
     auto itr = this->connections.find(fd);
     return_if(itr == this->connections.end());
@@ -405,21 +431,24 @@ namespace aeres
   }
 
 
-  void SocketDispatcherImpl::OnSend(int fd)
+  void SocketDispatcherImpl::OnConnect(Socket fd)
   {
-    assert(fd != -1);
+    fail_if(fd == INVALID_SOCKET);
 
     auto itr = this->connections.find(fd);
     return_if(itr == this->connections.end());
 
     auto & entry = itr->second;
-    this->SetSendBusy(entry, false);
+    return_if(!entry.connection->IsConnecting());
+
+    entry.connection->SetConnecting(false);
+    entry.busyOut = false;
 
     this->TrySend(entry);
   }
 
 
-  void SocketDispatcherImpl::OnReceive(int fd)
+  void SocketDispatcherImpl::OnSend(Socket fd, size_t nbytes)
   {
     assert(fd != -1);
 
@@ -427,21 +456,80 @@ namespace aeres
     return_if(itr == this->connections.end());
 
     auto & entry = itr->second;
-
-    uint8_t buffer[BUFSIZ];
-    ssize_t len = 0;
-
-    while ((len = read(fd, buffer, sizeof(buffer))) > 0 || (len < 0 && errno == EINTR))
+    if (nbytes > 0)
     {
-      if (len > 0 && entry.onReceive)
+      entry.sendBuf.ReadBuffer(nullptr, nbytes);
+    }
+
+    entry.busyOut = false;
+
+    this->TrySend(entry);
+  }
+
+
+  void SocketDispatcherImpl::OnReceive(Socket fd, size_t nbytes)
+  {
+    assert(fd != -1);
+
+    auto itr = this->connections.find(fd);
+    return_if(itr == this->connections.end());
+
+    auto & entry = itr->second;
+    return_if(entry.connection->IsConnecting() || entry.connection->IsClosed());
+    
+    auto & context = entry.contexts[static_cast<size_t>(CompletionContextType::RECV)];
+
+    if (nbytes > 0)
+    {
+      if (entry.onReceive)
       {
-        entry.onReceive(this, entry.connection.get(), buffer, len);
+        entry.onReceive(this, entry.connection.get(), context.recvBuf, nbytes);
       }
     }
 
-    if (len == 0 || (len < 0 && errno != EAGAIN && errno != EWOULDBLOCK))
+    int rtn = 0;
+    while (rtn == 0)
     {
+      context.wsaRecvBuf.buf = context.recvBuf;
+      context.wsaRecvBuf.len = sizeof(context.recvBuf);
+
+      DWORD nrecv = 0;
+      rtn = WSARecv(fd, &context.wsaRecvBuf, 1, &nrecv, 0, &context.overlapped, nullptr);
+      if (rtn == SOCKET_ERROR)
+      {
+        int errorCode = WSAGetLastError();
+        if (errorCode != WSA_IO_PENDING && errorCode != WSAEWOULDBLOCK)
+        {
+          Log::Verbose("SocketDispatcherImpl: Failed to recv on fd %fd. error=%d", fd, errorCode);
+          this->HandleError(entry.connection);
+          return;
+        }
+      }
+      else if (rtn == 0 && nrecv > 0)
+      {
+        if (entry.onReceive)
+        {
+          entry.onReceive(this, entry.connection.get(), context.recvBuf, nrecv);
+        }
+      }
+      else
+      {
+        break;
+      }
+    }
+
+    if (entry.connection->IsShuttingDown() && entry.sendBuf.Size() == 0)
+    {
+      // We are ready to close this connection
       this->HandleError(entry.connection);
     }
   }
+
+
+  bool SocketDispatcherImpl::NotifyMessage()
+  {
+    fail_false_if(!this->iocp);
+    return PostQueuedCompletionStatus(this->iocp, 0, reinterpret_cast<ULONG_PTR>(this), &this->messageOverlapped) == TRUE;
+  }
+
 }

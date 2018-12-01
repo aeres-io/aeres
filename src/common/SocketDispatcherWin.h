@@ -28,12 +28,79 @@
 #error("SocketDispatcherWin.h should only be included in WINDOWS build.")
 #endif
 
+#include <map>
+#include <thread>
+#include <memory>
+#include <atomic>
+#include <aeres/LockFreeQueue.h>
+#include <aeres/BufferStream.h>
 #include <aeres/SocketDispatcher.h>
 
 namespace aeres
 {
   class SocketDispatcherImpl : public SocketDispatcher
   {
+  private:
+
+    enum class MessageType
+    {
+      REG,
+      DEL,
+      SEND
+    };
+
+    struct Message
+    {
+      MessageType type;
+
+      virtual ~Message() = default;
+    };
+
+    struct RegisterMessage : public Message
+    {
+      Listener onReceive;
+      SocketConnectionPtr connection;
+      bool initialBusy;
+    };
+
+    struct DeleteMessage : public Message
+    {
+      Socket fd;
+    };
+
+    struct SendDataMessage : public Message
+    {
+      Buffer data;
+      SocketConnectionPtr connection;
+    };
+
+
+    enum class CompletionContextType
+    {
+      CONNECT = 0,
+      RECV = 1,
+      SEND = 2,
+      __MAX__ = 3
+    };
+
+    struct CompletionContext
+    {
+      WSABUF wsaSendBuf;
+      WSABUF wsaRecvBuf;
+      CHAR sendBuf[8192];
+      CHAR recvBuf[8192];
+      WSAOVERLAPPED overlapped;
+    };
+
+    struct Entry
+    {
+      SocketConnectionPtr connection;
+      Listener onReceive;
+      BufferStream sendBuf;
+      bool busyOut = false;
+      CompletionContext contexts[static_cast<const size_t>(CompletionContextType::__MAX__)];
+    };
+
   public:
 
     ~SocketDispatcherImpl() override;
@@ -45,5 +112,41 @@ namespace aeres
     void Delete(Socket fd) override;
 
     bool Send(SocketConnectionPtr connection, Buffer data) override;
+
+  private:
+
+    void ThreadProc();
+
+    bool NotifyMessage();
+
+    void HandleMessages();
+    void HandleMessage(RegisterMessage * msg);
+    void HandleMessage(DeleteMessage * msg);
+    void HandleMessage(SendDataMessage * msg);
+
+    void TrySend(Entry & entry);
+
+    void HandleError(Socket fd);
+    void HandleError(SocketConnectionPtr connection);
+
+    bool ConnectSocket(Entry & entry);
+
+    void OnConnect(Socket fd);
+    void OnSend(Socket fd, size_t nbytes);
+    void OnReceive(Socket fd, size_t nbytes);
+
+  private:
+
+    HANDLE iocp = NULL;
+
+    std::map<Socket, Entry> connections;
+
+    LockFreeQueue<Message *> messages;
+
+    std::thread thread;
+    
+    std::atomic<bool> active{ true };
+
+    OVERLAPPED messageOverlapped;
   };
 }

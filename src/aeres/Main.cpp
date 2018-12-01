@@ -34,8 +34,10 @@
 #include "Options.h"
 
 #include <stdio.h>
+#ifndef WIN32
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -82,6 +84,7 @@ int main(int argc, const char ** argv)
   {
     case Command::None:
     {
+#ifndef WIN32
       while (true)
       {
         std::string line;
@@ -156,6 +159,7 @@ int main(int argc, const char ** argv)
           }
         }
       }
+#endif
       break;
     }
     case Command::Application:

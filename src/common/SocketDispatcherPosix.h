@@ -33,6 +33,7 @@
 #include <thread>
 #include <memory>
 #include <atomic>
+#include <aeres/BufferStream.h>
 #include <aeres/LockFreeQueue.h>
 #include <aeres/IoEventQueue.h>
 #include <aeres/SocketDispatcher.h>

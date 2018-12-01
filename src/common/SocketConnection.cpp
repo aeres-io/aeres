@@ -56,6 +56,10 @@ namespace aeres
   {
     Log::Debug("SocketConnection:~SocketConnection: this=%p", this);
     this->Close();
+
+#ifdef WIN32
+    this->SetAddr(nullptr, 0);
+#endif
   }
 
 

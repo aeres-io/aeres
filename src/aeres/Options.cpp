@@ -29,9 +29,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifndef WIN32
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+#endif
 
 
 namespace aeres
@@ -502,12 +505,24 @@ bool Options::Validate()
     const char *homedir;
     if ((homedir = getenv("HOME")) == NULL)
     {
+#ifndef WIN32
       homedir = getpwuid(getuid())->pw_dir;
+#else
+      homedir = getenv("USERPROFILE");
+      if (!homedir)
+      {
+        homedir = ".";
+      }
+#endif
     }
     if (homedir != NULL)
     {
       cfgFile = homedir;
+#ifndef WIN32
       cfgFile.append("/");
+#else
+      cfgFile.append("\\");
+#endif
     }
     cfgFile.append(".aeres.conf");
   }

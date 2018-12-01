@@ -23,7 +23,10 @@
 */
 
 #include <assert.h>
+
+#ifndef WIN32
 #include <netinet/in.h>
+#endif
 
 #include <net/tools/quic/relay/quic_raw_session.h>
 #include <net/quic/quartc/quartc_stream.h>

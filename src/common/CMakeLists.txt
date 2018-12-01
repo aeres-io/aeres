@@ -55,7 +55,6 @@ set(
   Log.cpp
   ScopeGuard.cpp
   SocketConnection.cpp
-  SocketDispatcher.cpp
 )
 
 
@@ -64,6 +63,7 @@ if (DEFINED MACOSX)
     AERES_COMMON_SRC ${AERES_COMMON_SRC}
 
     IoEventQueueMac.cpp
+    SocketDispatcherPosix.cpp
   )
   add_definitions(-DOS_MACOSX)
 endif (DEFINED MACOSX)
@@ -73,9 +73,18 @@ if (DEFINED LINUX)
     AERES_COMMON_SRC ${AERES_COMMON_SRC}
 
     IoEventQueueLinux.cpp
+    SocketDispatcherPosix.cpp
   )
   add_definitions(-DOS_LINUX)
 endif (DEFINED LINUX)
+
+if (DEFINED WINDOWS)
+  set(
+    AERES_COMMON_SRC ${AERES_COMMON_SRC}
+
+    SocketDispatcherWin.cpp
+  )
+endif (DEFINED WINDOWS)
 
 add_library(aeres-common STATIC ${AERES_COMMON_SRC})
 
