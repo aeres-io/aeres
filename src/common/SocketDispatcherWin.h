@@ -32,6 +32,8 @@
 #include <thread>
 #include <memory>
 #include <atomic>
+#include <mutex>
+#include <condition_variable>
 #include <aeres/LockFreeQueue.h>
 #include <aeres/BufferStream.h>
 #include <aeres/SocketDispatcher.h>
@@ -61,6 +63,11 @@ namespace aeres
       Listener onReceive;
       SocketConnectionPtr connection;
       bool initialBusy;
+      std::mutex mutex;
+      std::condition_variable completeCond;
+      std::condition_variable completeNotifiedCond;
+      std::atomic<bool> completed;
+      std::atomic<bool> completeNotified;
     };
 
     struct DeleteMessage : public Message

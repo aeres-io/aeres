@@ -76,11 +76,36 @@ namespace aeres
     message->connection = connection;
     message->onReceive = onReceive;
     message->initialBusy = initialBusy;
+    message->completed = message->completeNotified = false;
 
     return_false_if(!this->messages.Produce(message.get()));
-    message.release();
+    auto msg = message.release();
 
-    return this->NotifyMessage();
+    if (!this->NotifyMessage())
+    {
+      return false;
+    }
+    
+    if (!onReceive)
+    {
+      // We are removing the callback. This may happen in a destructor. Wait until it is actually removed.
+      if (!msg->completed)
+      {
+        std::unique_lock<std::mutex> lock(msg->mutex);
+        if (!msg->completed)
+        {
+          msg->completeCond.wait(lock);
+        }
+      }
+
+      {
+        std::unique_lock<std::mutex> lock(msg->mutex);
+        msg->completeNotified = true;
+        msg->completeNotifiedCond.notify_all();
+      }
+    }
+
+    return true;
   }
 
 
@@ -124,12 +149,14 @@ namespace aeres
       OVERLAPPED * overlapped = nullptr;
       if (!GetQueuedCompletionStatus(this->iocp, &nbytes, &ckey, &overlapped, INFINITE))
       {
-        break;
+        Log::Debug("SocketDispatcherImpl::ThreadProc: IOCP got event with winerr=%d", GetLastError());
+        continue;
       }
 
       if (ckey == reinterpret_cast<ULONG_PTR>(this))
       {
         this->HandleMessages();
+        continue;
       }
 
       Socket fd = static_cast<Socket>(ckey);
@@ -266,6 +293,7 @@ namespace aeres
     {
       sockaddr_in addr;
       ZeroMemory(&addr, sizeof(sockaddr_in));
+      addr.sin_family = AF_INET;
       if (bind(fd, (sockaddr *)&addr, sizeof(sockaddr_in)) != 0)
       {
         Log::Verbose("SocketDispatcher: fd %d failed to bind to local address.", fd);
@@ -293,24 +321,44 @@ namespace aeres
     }
 
     auto & entry = itr->second;
-    return_if(entry.connection != msg->connection);
-
-    entry.onReceive = msg->onReceive;
-
-    if (entry.connection->IsConnectNeeded())
+    if (entry.connection == msg->connection)
     {
-      entry.connection->SetConnecting(true);
-      entry.connection->SetConnectNeeded(false);
-      if (!this->ConnectSocket(entry))
+      entry.onReceive = msg->onReceive;
+
+      if (entry.connection->IsConnectNeeded())
       {
-        Log::Verbose("SocketDispatcher: failed to connect to socket %d.", fd);
-        this->HandleError(entry.connection);
+        entry.connection->SetConnecting(true);
+        entry.connection->SetConnectNeeded(false);
+        if (!this->ConnectSocket(entry))
+        {
+          Log::Verbose("SocketDispatcher: failed to connect to socket %d.", fd);
+          this->HandleError(entry.connection);
+        }
+      }
+      else if (!entry.connection->IsConnecting() && entry.onReceive)
+      {
+        // Kick off receive
+        this->OnReceive(fd, 0);
       }
     }
-    else if (!entry.connection->IsConnecting() && entry.onReceive)
+    
+    // Notify complete on removing callbacks
+    if (!msg->onReceive)
     {
-      // Kick off receive
-      this->OnReceive(fd, 0);
+      {
+        std::unique_lock<std::mutex> lock(msg->mutex);
+        msg->completed = true;
+        msg->completeCond.notify_all();
+      }
+
+      if (!msg->completeNotified)
+      {
+        std::unique_lock<std::mutex> lock(msg->mutex);
+        if (!msg->completeNotified)
+        {
+          msg->completeNotifiedCond.wait(lock);
+        }
+      }
     }
   }
 
@@ -444,6 +492,7 @@ namespace aeres
     entry.connection->SetConnecting(false);
     entry.busyOut = false;
 
+    this->OnReceive(fd, 0);
     this->TrySend(entry);
   }
 
@@ -494,18 +543,19 @@ namespace aeres
       context.wsaRecvBuf.len = sizeof(context.recvBuf);
 
       DWORD nrecv = 0;
-      rtn = WSARecv(fd, &context.wsaRecvBuf, 1, &nrecv, 0, &context.overlapped, nullptr);
+      DWORD flags = 0;
+      rtn = WSARecv(fd, &context.wsaRecvBuf, 1, &nrecv, &flags, &context.overlapped, nullptr);
       if (rtn == SOCKET_ERROR)
       {
         int errorCode = WSAGetLastError();
         if (errorCode != WSA_IO_PENDING && errorCode != WSAEWOULDBLOCK)
         {
-          Log::Verbose("SocketDispatcherImpl: Failed to recv on fd %fd. error=%d", fd, errorCode);
+          Log::Verbose("SocketDispatcherImpl: Failed to recv on fd %d. error=%d", fd, errorCode);
           this->HandleError(entry.connection);
           return;
         }
       }
-      else if (rtn == 0 && nrecv > 0)
+      else if (rtn == 0)
       {
         if (entry.onReceive)
         {

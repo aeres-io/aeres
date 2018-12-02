@@ -79,14 +79,14 @@ namespace aeres
           std::transform(optionName.begin(), optionName.end(), optionName.begin(), ::tolower);
           if (optionName == "domain")
           {
-            if (std::equal(optionValue.begin(), optionValue.end(), cookie->Domain().end() - optionValue.size()))
+            if (cookie->Domain().size() >= optionValue.size() && std::equal(optionValue.begin(), optionValue.end(), cookie->Domain().end() - optionValue.size()))
             {
               cookie->Domain(optionValue);
             }
           }
           else if (optionName == "path")
           {
-            if (std::equal(optionValue.begin(), optionValue.end(), cookie->Path().begin()))
+            if (optionValue == cookie->Path())
             {
               cookie->Path(optionValue);
             }
@@ -179,8 +179,8 @@ namespace aeres
     return std::find_if(begin, cookies.end(), [&](Cookie * cookie) {
       return
         (sname.size() == 0 || cookie->Name() == sname) &&
-        (cookie->Domain().size() == 0 || std::equal(cookie->Domain().begin(), cookie->Domain().end(), sdomain.end() - cookie->Domain().size())) &&
-        (cookie->Path().size() == 0 || std::equal(cookie->Path().begin(), cookie->Path().end(), spath.begin()));
+        (cookie->Domain().size() == 0 || (sdomain.size() >= cookie->Domain().size() && std::equal(cookie->Domain().begin(), cookie->Domain().end(), sdomain.end() - cookie->Domain().size()))) &&
+        (cookie->Path().size() == 0 || cookie->Path() == spath);
     });
   }
 
@@ -193,8 +193,8 @@ namespace aeres
     for (Iterator it = cookies.begin(); it != cookies.end(); it++)
     {
       Cookie * cookie = (*it);
-      if ((cookie->Domain().size() == 0 || std::equal(cookie->Domain().begin(), cookie->Domain().end(), sdomain.end() - cookie->Domain().size())) &&
-          (cookie->Path().size() == 0 || std::equal(cookie->Path().begin(), cookie->Path().end(), spath.begin())))
+      if ((cookie->Domain().size() == 0 || (sdomain.size() >= cookie->Domain().size() && std::equal(cookie->Domain().begin(), cookie->Domain().end(), sdomain.end() - cookie->Domain().size()))) &&
+          (cookie->Path().size() == 0 || cookie->Path() == spath))
       {
         res << (*it)->Name() << '=' << (*it)->Value() << ';';
       }
