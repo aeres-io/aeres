@@ -39,6 +39,7 @@
 #include <aeres/ConnectionFactory.h>
 
 #ifndef WIN32
+#include <netinet/in.h>
 #include "SocketDispatcherPosix.h"
 #else
 #include "SocketDispatcherWin.h"
