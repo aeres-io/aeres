@@ -48,4 +48,9 @@ include_directories("${ROOT_LIBQUIC}/src/quic/gen")
 include_directories("${ROOT_LIBQUIC}/src/quic/third_party/protobuf/src")
 include_directories("${ROOT_LIBQUIC}/src/third_party/boringssl/src/include")
 
+if (DEFINED WINDOWS)
+  add_definitions(-DCOMPONENT_BUILD -D_WINSOCK_DEPRECATED_NO_WARNINGS)
+  add_definitions(/wd4819 /wd4267 /wd4244 /wd4251 /wd4275 /wd4930 /wd4018 /wd4015 /wd4273)
+endif (DEFINED WINDOWS)
+
 

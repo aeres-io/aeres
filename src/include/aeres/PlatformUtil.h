@@ -22,6 +22,12 @@
 
 #include <string.h>
 
+#ifdef WIN32
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
+#endif
+#endif
+
 #ifndef __linux__
   inline const char * strchrnul(const char * str, int c)
   {
@@ -33,4 +39,5 @@
     return ptr;
   }
 #endif
+
 

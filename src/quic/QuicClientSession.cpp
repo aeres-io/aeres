@@ -23,7 +23,10 @@
 */
 
 #include <assert.h>
+
+#ifndef WIN32
 #include <netinet/in.h>
+#endif
 
 #include <net/tools/quic/relay/quic_raw_session.h>
 #include <net/quic/quartc/quartc_stream.h>
@@ -257,11 +260,12 @@ namespace aeres
           {
             this->OnLocalData(connection, local, data, len);
           }
-          else if (!this->taskRunner ||
+          else if ((!local->IsClosed()) && (
+                   !this->taskRunner ||
                    !this->taskRunner->PostTask(base::Bind(&QuicClientSession::CloseLocal,
                                                           this->weakFactory.GetWeakPtr(),
                                                           local,
-                                                          connection)))
+                                                          connection))))
           {
             Log::Warning("QuicClientSession: unable to request QUIC thread to close local connection. this=%p", this);
           }

@@ -47,3 +47,72 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if (NOT DEFINED TARGET_ARCH_ABI)
+  if (NOT (WINDOWS OR WINDOWS_STORE OR WINDOWS_PHONE))
+    set (UNAME_CMD "uname")
+    set (UNAME_ARG "-m")
+    execute_process(COMMAND ${UNAME_CMD} ${UNAME_ARG}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        RESULT_VARIABLE UNAME_RESULT
+        OUTPUT_VARIABLE UNAME_MACHINE)
+
+    # Use Regex; match i386, i486, i586 and i686
+    if (NOT (${UNAME_MACHINE} MATCHES "i.86"))
+      if (NOT (${UNAME_MACHINE} MATCHES "x86_64"))
+        message(FATAL_ERROR, "Please define TARGET_ARCH_ABI to build.")
+      else()
+        set(TARGET_ARCH_ABI x86_64)
+      endif (NOT (${UNAME_MACHINE} MATCHES "x86_64"))
+    else()
+      set(TARGET_ARCH_ABI x86)
+    endif (NOT (${UNAME_MACHINE} MATCHES "i.86"))
+  else()
+    if (${CMAKE_GENERATOR_PLATFORM} MATCHES "Win32")
+      set(TARGET_ARCH_ABI x86)
+    elseif (${CMAKE_GENERATOR_PLATFORM} MATCHES "x64")
+      set(TARGET_ARCH_ABI x86_64)
+    else ()
+      message(WARNING "CMAKE_GENERATOR_PLATFORM not defined. Default ABI set to x86")
+      set(TARGET_ARCH_ABI x86)
+    endif (${CMAKE_GENERATOR_PLATFORM} MATCHES "Win32")
+  endif()
+endif (NOT DEFINED TARGET_ARCH_ABI)
+
+message("-- TARGET_ARCH_ABI set to ${TARGET_ARCH_ABI}")
+
+if (DEFINED UNIX)
+  set(LIBEXT "a")
+  if (DEFINED MACOSX)
+    set(DLLEXT "dylib")
+  else ()
+    set(DLLEXT "so")
+  endif (DEFINED MACOSX)
+else ()
+  set(LIBEXT "lib")
+  set(DLLEXT "dll")
+endif (DEFINED UNIX)
+
+if (DEFINED WINDOWS)
+  add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_UNICODE -DUNICODE -DUCHAR_TYPE=wchar_t -DWIN32 -D__WIN32__ -D_WIN32)
+
+  if (${TARGET_ARCH_ABI} STREQUAL "x86_64")
+    add_definitions(-DWIN64 -D__WIN64__ -D_WIN64)
+  endif (${TARGET_ARCH_ABI} STREQUAL "x86_64")
+
+  if (NOT DEFINED BUILDTOOLS)
+    set(BUILDTOOLS ${ROOT}/../buildtools-win)
+    message("-- BUILDTOOLS not defined. Use default value ${BUILDTOOLS}")
+  endif (NOT DEFINED BUILDTOOLS)
+
+  if (NOT DEFINED CURL_ROOT)
+    set(CURL_ROOT ${BUILDTOOLS}/${TARGET_ARCH_ABI}/curl)
+  endif (NOT DEFINED CURL_ROOT)
+
+  if (NOT DEFINED READLINE_ROOT)
+    set(READLINE_ROOT ${BUILDTOOLS}/${TARGET_ARCH_ABI}/readline)
+  endif (NOT DEFINED READLINE_ROOT)
+
+  if (NOT DEFINED OPENSSL_ROOT)
+    set(OPENSSL_ROOT ${BUILDTOOLS}/${TARGET_ARCH_ABI}/openssl)
+  endif (NOT DEFINED OPENSSL_ROOT)
+endif (DEFINED WINDOWS)

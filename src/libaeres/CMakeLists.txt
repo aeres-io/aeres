@@ -65,3 +65,7 @@ if (DEFINED DEBUG_HTTP_RELAY)
   add_definitions(-DDEBUG_HTTP_RELAY)
 endif (DEFINED DEBUG_HTTP_RELAY)
 
+if (DEFINED WINDOWS)
+  include_directories(${CURL_ROOT}/include)
+endif (DEFINED WINDOWS)
+

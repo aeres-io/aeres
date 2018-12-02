@@ -22,17 +22,15 @@
   SOFTWARE.
 */
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+
 #include <aeres/ScopeGuard.h>
 #include <aeres/Log.h>
 #include <aeres/Util.h>
-#include <aeres/SocketDispatcher.h>
+#include "SocketDispatcherPosix.h"
 
 namespace aeres
 {
-  SocketDispatcher::~SocketDispatcher()
+  SocketDispatcherImpl::~SocketDispatcherImpl()
   {
     this->active = false;
 
@@ -69,17 +67,17 @@ namespace aeres
   }
 
 
-  bool SocketDispatcher::Initialize()
+  bool SocketDispatcherImpl::Initialize()
   {
     return_false_if(socketpair(AF_UNIX, SOCK_DGRAM, 0, this->pipe) == -1);
 
-    this->thread = std::thread(std::bind(&SocketDispatcher::ThreadProc, this));
+    this->thread = std::thread(std::bind(&SocketDispatcherImpl::ThreadProc, this));
 
     return false;
   }
 
 
-  bool SocketDispatcher::Register(SocketConnectionPtr connection, Listener onReceive, bool initialBusy)
+  bool SocketDispatcherImpl::Register(SocketConnectionPtr connection, Listener onReceive, bool initialBusy)
   {
     return_false_if(this->pipe[0] == -1 || !connection || connection->Fd() == -1);
 
@@ -97,7 +95,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::Delete(int fd)
+  void SocketDispatcherImpl::Delete(Socket fd)
   {
     return_if(this->pipe[0] == -1 || fd == -1);
 
@@ -113,7 +111,7 @@ namespace aeres
   }
 
 
-  bool SocketDispatcher::Send(SocketConnectionPtr connection, Buffer data)
+  bool SocketDispatcherImpl::Send(SocketConnectionPtr connection, Buffer data)
   {
     return_false_if(this->pipe[0] == -1 || !connection || connection->Fd() == -1);
 
@@ -130,7 +128,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::ThreadProc()
+  void SocketDispatcherImpl::ThreadProc()
   {
     ScopeGuard guard([this]() {
       if (this->pipe[1] != -1)
@@ -195,7 +193,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::HandleMessages()
+  void SocketDispatcherImpl::HandleMessages()
   {
     Message * msg = nullptr;
     while (this->messages.Consume(msg))
@@ -229,7 +227,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::HandleMessage(RegisterMessage * msg)
+  void SocketDispatcherImpl::HandleMessage(RegisterMessage * msg)
   {
     int fd = msg->connection->Fd();
 
@@ -267,7 +265,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::HandleMessage(DeleteMessage * msg)
+  void SocketDispatcherImpl::HandleMessage(DeleteMessage * msg)
   {
     int fd = msg->fd;
 
@@ -288,7 +286,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::HandleMessage(SendMessage * msg)
+  void SocketDispatcherImpl::HandleMessage(SendMessage * msg)
   {
     assert(msg);
 
@@ -317,7 +315,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::TrySend(Entry & entry)
+  void SocketDispatcherImpl::TrySend(Entry & entry)
   {
     int fd = entry.connection->Fd();
 
@@ -369,7 +367,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::SetSendBusy(Entry & entry, bool busy)
+  void SocketDispatcherImpl::SetSendBusy(Entry & entry, bool busy)
   {
     return_if(entry.busyOut == busy);
 
@@ -387,7 +385,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::HandleError(SocketConnectionPtr connection)
+  void SocketDispatcherImpl::HandleError(SocketConnectionPtr connection)
   {
     assert(connection);
 
@@ -399,7 +397,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::HandleError(int fd)
+  void SocketDispatcherImpl::HandleError(int fd)
   {
     assert(fd != -1);
 
@@ -410,7 +408,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::OnSend(int fd)
+  void SocketDispatcherImpl::OnSend(int fd)
   {
     assert(fd != -1);
 
@@ -424,7 +422,7 @@ namespace aeres
   }
 
 
-  void SocketDispatcher::OnReceive(int fd)
+  void SocketDispatcherImpl::OnReceive(int fd)
   {
     assert(fd != -1);
 

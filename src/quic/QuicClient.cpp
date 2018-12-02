@@ -28,9 +28,11 @@
 #include <chrono>
 #include <limits>
 
+#ifndef WIN32
 #include <unistd.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#endif
 
 #include <base/at_exit.h>
 #include <base/message_loop/message_loop.h>

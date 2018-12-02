@@ -100,7 +100,6 @@ namespace aeres
       base::TaskRunner * taskRunner = nullptr;
 
       base::WeakPtrFactory<QuicClientSession> weakFactory;
-
     };
   }
 }

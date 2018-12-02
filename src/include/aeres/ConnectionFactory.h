@@ -25,10 +25,8 @@
 #pragma once
 
 #include <memory>
-#include <sys/types.h>
-#include <sys/socket.h>
-
 #include <aeres/Connection.h>
+#include <aeres/Socket.h>
 
 namespace aeres
 {
@@ -44,12 +42,12 @@ namespace aeres
 
     ConnectionFactory & operator=(const ConnectionFactory & rhs) = delete;
 
-    std::shared_ptr<Connection> CreateSocketConnection(int fd, bool autoStart = true) const;
+    std::shared_ptr<Connection> CreateSocketConnection(Socket fd, bool autoStart = true) const;
 
     std::shared_ptr<Connection> CreateSocketConnection(struct sockaddr * addr, socklen_t len, bool autoStart = true) const;
 
   private:
 
-    static void SetSocketOptions(int fd);
+    static void SetSocketOptions(Socket fd);
   };
 }

@@ -34,9 +34,11 @@ include(${ROOT}/Config.cmake)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(MACOSX TRUE)
-else()
-  set(LINUX TRUE)
-endif()
+else ()
+  if (DEFINED UNIX)
+    set(LINUX TRUE)
+  endif (DEFINED UNIX)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 set(
@@ -53,7 +55,6 @@ set(
   Log.cpp
   ScopeGuard.cpp
   SocketConnection.cpp
-  SocketDispatcher.cpp
 )
 
 
@@ -62,6 +63,7 @@ if (DEFINED MACOSX)
     AERES_COMMON_SRC ${AERES_COMMON_SRC}
 
     IoEventQueueMac.cpp
+    SocketDispatcherPosix.cpp
   )
   add_definitions(-DOS_MACOSX)
 endif (DEFINED MACOSX)
@@ -71,9 +73,18 @@ if (DEFINED LINUX)
     AERES_COMMON_SRC ${AERES_COMMON_SRC}
 
     IoEventQueueLinux.cpp
+    SocketDispatcherPosix.cpp
   )
   add_definitions(-DOS_LINUX)
 endif (DEFINED LINUX)
+
+if (DEFINED WINDOWS)
+  set(
+    AERES_COMMON_SRC ${AERES_COMMON_SRC}
+
+    SocketDispatcherWin.cpp
+  )
+endif (DEFINED WINDOWS)
 
 add_library(aeres-common STATIC ${AERES_COMMON_SRC})
 
