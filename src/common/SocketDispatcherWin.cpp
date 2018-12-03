@@ -164,6 +164,7 @@ namespace aeres
       if (itr == this->connections.end())
       {
         Log::Debug("SocketDispatcherImpl: Got event from unknown fd %d.", fd);
+        CloseSocket(fd);
         continue;
       }
 
@@ -421,6 +422,7 @@ namespace aeres
     {
       context.wsaSendBuf.len = entry.sendBuf.PeekBuffer(context.sendBuf, sizeof(context.sendBuf));
       context.wsaSendBuf.buf = context.sendBuf;
+      ZeroMemory(&context.overlapped, sizeof(context.overlapped));
       DWORD offset = 0;
 
       rtn = WSASend(fd, &context.wsaSendBuf, 1, &offset, 0, &context.overlapped, nullptr);
@@ -449,7 +451,7 @@ namespace aeres
       }
     }
 
-    if (entry.connection->IsShuttingDown() && entry.connection->PendingSend() == 0 && entry.sendBuf.Size() == 0)
+    if (entry.connection->IsShuttingDown() && entry.connection->PendingSend() ==0 && entry.sendBuf.Size() == 0)
     {
       // We are ready to close this connection
       this->HandleError(entry.connection);
@@ -542,10 +544,10 @@ namespace aeres
     {
       context.wsaRecvBuf.buf = context.recvBuf;
       context.wsaRecvBuf.len = sizeof(context.recvBuf);
+      ZeroMemory(&context.overlapped, sizeof(context.overlapped));
 
-      DWORD nrecv = 0;
       DWORD flags = 0;
-      rtn = WSARecv(fd, &context.wsaRecvBuf, 1, &nrecv, &flags, &context.overlapped, nullptr);
+      rtn = WSARecv(fd, &context.wsaRecvBuf, 1, nullptr, &flags, &context.overlapped, nullptr);
       if (rtn == SOCKET_ERROR)
       {
         int errorCode = WSAGetLastError();
@@ -554,13 +556,6 @@ namespace aeres
           Log::Verbose("SocketDispatcherImpl: Failed to recv on fd %d. error=%d", fd, errorCode);
           this->HandleError(entry.connection);
           return;
-        }
-      }
-      else if (rtn == 0)
-      {
-        if (entry.onReceive)
-        {
-          entry.onReceive(this, entry.connection.get(), context.recvBuf, nrecv);
         }
       }
       else
