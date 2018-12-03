@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
 #else
 #include <WinSock2.h>
 #include <WS2tcpip.h>
