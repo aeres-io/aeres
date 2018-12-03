@@ -441,6 +441,7 @@ namespace aeres
       else if (rtn == 0 && offset > 0)
       {
         entry.sendBuf.ReadBuffer(nullptr, offset);
+        entry.connection->DecreasePendingSend(offset);
       }
       else
       {
@@ -448,7 +449,7 @@ namespace aeres
       }
     }
 
-    if (entry.connection->IsShuttingDown() && entry.sendBuf.Size() == 0)
+    if (entry.connection->IsShuttingDown() && entry.connection->PendingSend() == 0 && entry.sendBuf.Size() == 0)
     {
       // We are ready to close this connection
       this->HandleError(entry.connection);
@@ -568,7 +569,7 @@ namespace aeres
       }
     }
 
-    if (entry.connection->IsShuttingDown() && entry.sendBuf.Size() == 0)
+    if (entry.connection->IsShuttingDown() && entry.connection->PendingSend() == 0 && entry.sendBuf.Size() == 0)
     {
       // We are ready to close this connection
       this->HandleError(entry.connection);

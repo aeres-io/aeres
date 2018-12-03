@@ -49,11 +49,17 @@ namespace aeres
 
     void Shutdown() override;
 
-    Socket Fd() const                  { return this->fd; }
+    Socket Fd() const               { return this->fd; }
 
     bool IsClosed() const override  { return this->closed; }
 
     bool IsShuttingDown() const     { return this->closing; }
+
+    size_t PendingSend() const      { return this->pendingSend; }
+
+    void IncreasePendingSend(size_t val);
+
+    void DecreasePendingSend(size_t val);
 
 #ifdef WIN32
     bool IsConnectNeeded() const    { return this->connectNeeded; }
@@ -95,6 +101,8 @@ namespace aeres
     std::atomic<bool> closed;
 
     std::atomic<bool> closing;
+
+    std::atomic<size_t> pendingSend;
 
 #ifdef WIN32
     std::atomic<bool> connectNeeded;

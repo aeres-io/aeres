@@ -37,6 +37,7 @@ namespace aeres
     , fd(fd)
     , closed(false)
     , closing(false)
+    , pendingSend(0)
 #ifdef WIN32
     , connectNeeded(false)
     , connecting(false)
@@ -77,6 +78,8 @@ namespace aeres
       (long long unsigned)this->totalBytesSent,
       (long long unsigned)this->totalBytesReceived);
 #endif
+
+    this->IncreasePendingSend(buffer.Size());
 
     return this->dispatcher->Send(ptr, std::move(buffer));
   }
@@ -136,5 +139,26 @@ namespace aeres
     Buffer buffer;
     auto ptr = std::static_pointer_cast<SocketConnection>(shared_from_this());
     this->dispatcher->Send(ptr, std::move(buffer));
+  }
+
+
+  void SocketConnection::IncreasePendingSend(size_t val)
+  {
+    this->pendingSend += val;
+  }
+
+
+  void SocketConnection::DecreasePendingSend(size_t val)
+  {
+    if (this->pendingSend >= val)
+    {
+      this->pendingSend -= val;
+    }
+    else
+    {
+      // This should never happen
+      Log::Warning("SocketConnection: the recorded pending send bytes is wrong. Reset to 0.");
+      this->pendingSend = 0;
+    }
   }
 }
