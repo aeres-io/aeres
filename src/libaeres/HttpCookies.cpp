@@ -86,7 +86,7 @@ namespace aeres
           }
           else if (optionName == "path")
           {
-            if (optionValue == cookie->Path())
+            if (optionValue.size() <= cookie->Path().size() && std::equal(optionValue.begin(), optionValue.end(), cookie->Path().begin()))
             {
               cookie->Path(optionValue);
             }
@@ -180,7 +180,7 @@ namespace aeres
       return
         (sname.size() == 0 || cookie->Name() == sname) &&
         (cookie->Domain().size() == 0 || (sdomain.size() >= cookie->Domain().size() && std::equal(cookie->Domain().begin(), cookie->Domain().end(), sdomain.end() - cookie->Domain().size()))) &&
-        (cookie->Path().size() == 0 || cookie->Path() == spath);
+        (cookie->Path().size() == 0 || (cookie->Path().size() <= spath.size() && std::equal(cookie->Path().begin(), cookie->Path().end(), spath.begin())));
     });
   }
 
@@ -194,7 +194,7 @@ namespace aeres
     {
       Cookie * cookie = (*it);
       if ((cookie->Domain().size() == 0 || (sdomain.size() >= cookie->Domain().size() && std::equal(cookie->Domain().begin(), cookie->Domain().end(), sdomain.end() - cookie->Domain().size()))) &&
-          (cookie->Path().size() == 0 || cookie->Path() == spath))
+          (cookie->Path().size() == 0 || (cookie->Path().size() <= spath.size() && std::equal(cookie->Path().begin(), cookie->Path().end(), spath.begin()))))
       {
         res << (*it)->Name() << '=' << (*it)->Value() << ';';
       }
