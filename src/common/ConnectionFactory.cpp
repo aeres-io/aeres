@@ -72,8 +72,8 @@ namespace aeres
 
     if (--g_socketDispatcher->nrefs <= 0)
     {
-      delete g_socketDispatcher;
-      g_socketDispatcher = nullptr;
+//      delete g_socketDispatcher;
+//      g_socketDispatcher = nullptr;
     }
   }
 
