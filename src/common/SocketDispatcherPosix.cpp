@@ -22,6 +22,7 @@
   SOFTWARE.
 */
 
+#include <fcntl.h>
 
 #include <aeres/ScopeGuard.h>
 #include <aeres/Log.h>
@@ -71,6 +72,9 @@ namespace aeres
   {
     return_false_if(socketpair(AF_UNIX, SOCK_DGRAM, 0, this->pipe) == -1);
 
+    int flags = fcntl(this->pipe[0], F_GETFL, 0);
+    fcntl(this->pipe[0], F_SETFL, flags | O_NONBLOCK);
+
     this->thread = std::thread(std::bind(&SocketDispatcherImpl::ThreadProc, this));
 
     return false;
@@ -91,7 +95,8 @@ namespace aeres
     message.release();
 
     uint8_t signal = 0;
-    return write(this->pipe[0], &signal, sizeof(signal)) == sizeof(signal);
+    unused_result(write(this->pipe[0], &signal, sizeof(signal)) == sizeof(signal));
+    return true;
   }
 
 
@@ -124,7 +129,8 @@ namespace aeres
     message.release();
 
     uint8_t signal = 0;
-    return write(this->pipe[0], &signal, sizeof(signal)) == sizeof(signal);
+    write(this->pipe[0], &signal, sizeof(signal)) == sizeof(signal);
+    return true;
   }
 
 
