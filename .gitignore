@@ -41,6 +41,9 @@
 *.user
 .vs
 
+# Wix object file
+*.wixobj
+
 # CMake generated files
 CMakeCache.txt
 CMakeFiles/
