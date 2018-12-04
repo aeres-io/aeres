@@ -1,6 +1,6 @@
 # Copyright 2016 FileGear - All Rights Reserved
 
-ROOT = $(realpath ..)
+ROOT = $(realpath ../..)
 
 VPATH = $(ROOT)/out/bin $(ROOT)/src/libquic/out/lib
 
