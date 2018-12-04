@@ -129,7 +129,7 @@ namespace aeres
     message.release();
 
     uint8_t signal = 0;
-    write(this->pipe[0], &signal, sizeof(signal)) == sizeof(signal);
+    unused_result(write(this->pipe[0], &signal, sizeof(signal)));
     return true;
   }
 
