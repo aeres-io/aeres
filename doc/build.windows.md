@@ -83,3 +83,21 @@ buildtools-win/[x86_64|x86]/curl/bin/libcurl.dll
 aeres/src/libquic/out/bin/quic.dll
  
 *Visual C++ 2017 redist will also be needed to run the executable on another machine.*
+
+### Create MSI Installation Package
+
+MSI build script is available at `setup/msi`. [Wix Toolset](http://wixtoolset.org/) needs to be installed to create the MSI package.
+
+Steps to build MSI package:
+
+1. Build the binaries of the product first.
+
+2. cd to setup/msi
+
+3. Run the following command
+
+```
+build <arch>
+```
+
+*The argument arch should be `x86` for 32-bit build and `x64` for 64-bit build.*
