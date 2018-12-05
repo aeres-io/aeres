@@ -77,10 +77,10 @@ Open “x86 Native Tools Command Prompt for VS 2017” from start menu. Use `cd`
 
 Make sure the dependency dll files are copied to the same folder of aeres.exe in order to run the executable, including:
  
-buildtools-win/[x86_64|x86]/openssl/bin/libeay32.dll
-buildtools-win/[x86_64|x86]/openssl/bin/ssleay32.dll
-buildtools-win/[x86_64|x86]/curl/bin/libcurl.dll
-aeres/src/libquic/out/bin/quic.dll
+ - buildtools-win/[x86_64|x86]/openssl/bin/libeay32.dll
+ - buildtools-win/[x86_64|x86]/openssl/bin/ssleay32.dll
+ - buildtools-win/[x86_64|x86]/curl/bin/libcurl.dll
+ - aeres/src/libquic/out/bin/quic.dll
  
 *Visual C++ 2017 redist will also be needed to run the executable on another machine.*
 
