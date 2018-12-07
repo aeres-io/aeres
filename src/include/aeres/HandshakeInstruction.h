@@ -22,37 +22,33 @@
   SOFTWARE.
 */
 
-#pragma once
-
-#include <stdlib.h>
-#include <stdint.h>
 #include <string>
+#include <stdint.h>
+#include <aeres/IInputStream.h>
+#include <aeres/IOutputStream.h>
 
 namespace aeres
 {
-  class IOutputStream
+  class HandshakeInstruction
   {
   public:
-    virtual ~IOutputStream() { }
 
-    virtual size_t Write(const void * buffer, size_t size) = 0;
+    const std::string & HostName() const     { return this->hostname; }
 
-    virtual bool WriteInt8(int8_t value);
-    virtual bool WriteInt8(const int8_t * ary, size_t length);
-    virtual bool WriteUInt8(uint8_t value);
-    virtual bool WriteUInt8(const uint8_t * ary, size_t length);
-    virtual bool WriteInt16(int16_t value);
-    virtual bool WriteInt16(const int16_t * ary, size_t length);
-    virtual bool WriteUInt16(uint16_t value);
-    virtual bool WriteUInt16(const uint16_t * ary, size_t length);
-    virtual bool WriteInt32(int32_t value);
-    virtual bool WriteInt32(const int32_t * ary, size_t length);
-    virtual bool WriteUInt32(uint32_t value);
-    virtual bool WriteUInt32(const uint32_t * ary, size_t length);
-    virtual bool WriteInt64(int64_t value);
-    virtual bool WriteInt64(const int64_t * ary, size_t length);
-    virtual bool WriteUInt64(uint64_t value);
-    virtual bool WriteUInt64(const uint64_t * ary, size_t length);
-    virtual bool WriteString(const std::string & str);
+    uint16_t Port() const                    { return this->port; }
+
+    void SetHostName(std::string val)        { this->hostname = std::move(val); }
+
+    void SetPort(uint16_t val)               { this->port = val; }
+
+    bool Serialize(IOutputStream & stream) const;
+
+    bool Deserialize(IInputStream & stream);
+
+  private:
+
+    std::string hostname;
+
+    uint16_t port = 0;
   };
 }

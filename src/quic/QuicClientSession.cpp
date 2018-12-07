@@ -35,6 +35,8 @@
 #include <aeres/Log.h>
 #include <aeres/Util.h>
 #include <aeres/ConnectionFactory.h>
+#include <aeres/HandshakeInstruction.h>
+#include <aeres/BufferedInputStream.h>
 #include <aeres/quic/QuicConnection.h>
 #include <aeres/client/QuicClientSession.h>
 
@@ -92,16 +94,18 @@ namespace aeres
           {
             if (!this->local)
             {
-              if (len < sizeof(uint16_t))
+              BufferedInputStream stream(static_cast<const uint8_t *>(data), len);
+              HandshakeInstruction instr;
+              if (!instr.Deserialize(stream))
               {
+                Log::Debug("QuicClientSesion::RecvCallback - Failed to deserialize handshake stream.");
                 this->Close();
                 return;
               }
 
-              uint16_t port;
-              memcpy(&port, data, sizeof(uint16_t));
-              port = ntohs(port);
-              this->OnHandshake(port);
+              Log::Debug("QuicClientSesion::RecvCallback - Received handshake message: hostname=%s port=%u", instr.HostName().c_str(), instr.Port());
+
+              this->OnHandshake(instr.Port());
             }
             else
             {

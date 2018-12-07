@@ -229,11 +229,21 @@ namespace aeres
     return result;
   }
 
-  bool IOutputStream::WriteString(std::string & str)
+  bool IOutputStream::WriteString(const std::string & str)
   {
-    return (
-      WriteUInt32(str.length()) &&
-      WriteInt8((int8_t*)str.data(), str.length())
-    );
+    if (!WriteUInt32(str.length()))
+    {
+      return false;
+    }
+
+    if (!str.empty())
+    {
+      if (!WriteInt8((const int8_t *)str.data(), str.length()))
+      {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

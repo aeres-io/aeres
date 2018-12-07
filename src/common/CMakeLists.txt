@@ -50,6 +50,7 @@ set(
   BufferStream.cpp
   Config.cpp
   ConnectionFactory.cpp
+  HandshakeInstruction.cpp
   IInputStream.cpp
   IOutputStream.cpp
   Log.cpp
