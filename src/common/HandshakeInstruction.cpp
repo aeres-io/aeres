@@ -41,6 +41,7 @@ namespace aeres
 
     return_false_if(!stream.WriteString(this->hostname));
     return_false_if(!stream.WriteUInt16(this->port));
+    return_false_if(!stream.WriteString(this->data));
 
     return true;
   }
@@ -55,6 +56,9 @@ namespace aeres
 
     return_false_if(stream.Remainder() < sizeof(uint16_t));
     this->port = stream.ReadUInt16();
+
+    return_false_if(stream.Remainder() < sizeof(uint32_t));
+    return_false_if(stream.ReadString(this->data) < sizeof(uint32_t));
 
     return true;
   }

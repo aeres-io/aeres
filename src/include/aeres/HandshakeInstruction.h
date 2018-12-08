@@ -37,9 +37,13 @@ namespace aeres
 
     uint16_t Port() const                    { return this->port; }
 
+    const std::string & Data() const         { return this->data; }
+
     void SetHostName(std::string val)        { this->hostname = std::move(val); }
 
     void SetPort(uint16_t val)               { this->port = val; }
+
+    void SetData(std::string val)            { this->data = std::move(val); }
 
     bool Serialize(IOutputStream & stream) const;
 
@@ -50,5 +54,7 @@ namespace aeres
     std::string hostname;
 
     uint16_t port = 0;
+
+    std::string data;
   };
 }
