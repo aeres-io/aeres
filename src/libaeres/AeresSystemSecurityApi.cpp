@@ -116,4 +116,35 @@ namespace aeres
     return rtn ? result : nullptr;
   }
 
+
+  AsyncResultPtr<AeresSystemSecurityApi::LoginSocksResult> AeresSystemSecurityApi::LoginSocks(const std::string & username, const std::string & password)
+  {
+    AeresObject::CArgs args;
+    args["username"] = username;
+    args["password"] = password;
+
+    auto result = std::make_shared<AsyncResult<LoginSocksResult>>();
+
+    bool rtn = this->Call("LoginSocks", args,
+      [result](Json::Value & data, bool error)
+      {
+        result->SetError(error);
+
+        if (error || !data.isObject() || data.isNull())
+        {
+          result->Complete(LoginSocksResult());
+        }
+        else
+        {
+          LoginSocksResult obj;
+          obj.endpoint = data["Endpoint"].isString() ? data["Endpoint"].asString() : std::string();
+          obj.mode = data["Mode"].isString() ? data["Mode"].asString() : std::string();
+          result->Complete(std::move(obj));
+        }
+      }
+    );
+
+    return rtn ? result : nullptr;
+  }
+
 }

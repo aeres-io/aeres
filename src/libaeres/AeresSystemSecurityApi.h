@@ -38,12 +38,19 @@ namespace aeres
   {
   public:
 
+    struct LoginSocksResult
+    {
+      std::string endpoint;
+      std::string mode;
+    };
+
+  public:
+
     AeresSystemSecurityApi(const char * base, const char * name, const char * path, const char * type);
 
     AsyncResultPtr<std::string> LoginPassword(const std::string & username, const std::string & password);
     AsyncResultPtr<std::string> LoginEndpoint(const std::string & appId, const std::string & endpointId);
     AsyncResultPtr<Json::Value> VerifyEndpointToken(const std::string & et);
-
-
+    AsyncResultPtr<LoginSocksResult> LoginSocks(const std::string & username, const std::string & password);
   };
 }
