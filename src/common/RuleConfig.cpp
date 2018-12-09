@@ -54,6 +54,8 @@ namespace aeres
         }
       });
 
+      this->rules.clear();
+
       std::ifstream stream(path);
       return_false_if(!stream);
 
