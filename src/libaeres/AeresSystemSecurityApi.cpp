@@ -60,28 +60,39 @@ namespace aeres
   }
 
 
-  AsyncResultPtr<std::string> AeresSystemSecurityApi::LoginEndpoint(const std::string & appId, const std::string & endpointId)
+  AsyncResultPtr<AeresSystemSecurityApi::LoginEndpointResult> AeresSystemSecurityApi::LoginEndpoint(const std::string & appId, const std::string & endpointId)
   {
     AeresObject::CArgs args;
     args["appId"] = Json::Value(appId);
     args["endpointId"] = Json::Value(endpointId);
 
-    auto result = std::make_shared<AsyncResult<std::string>>();
-
-//TODO:change to Json::Value
+    auto result = std::make_shared<AsyncResult<LoginEndpointResult>>();
 
     bool rtn = this->Call("LoginEndpoint", args,
-      [result](std::string && data, bool error)
+      [result](Json::Value & data, bool error)
       {
-        result->SetError(error || data.find("Error") != std::string::npos);
+        result->SetError(error);
 
-        if (error)
+        if (error || !data.isObject() || data.isNull())
         {
-          result->Complete(std::string());
+          result->Complete(LoginEndpointResult());
         }
         else
         {
-          result->Complete(std::move(data));
+          LoginEndpointResult obj;
+          obj.et = data["et"].isString() ? data["et"].asString() : std::string();
+          if (data["tunnelRules"].isArray())
+          {
+            for (size_t i = 0; i < data["tunnelRules"].size(); ++i)
+            {
+              const auto & line = data["tunnelRules"][i];
+              if (line.isString())
+              {
+                obj.tunnelRules.emplace_back(line.asString());
+              }
+            }
+          }
+          result->Complete(std::move(obj));
         }
       }
     );

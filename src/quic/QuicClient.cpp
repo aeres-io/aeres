@@ -53,14 +53,16 @@ namespace aeres
 {
   namespace client
   {
-    QuicClient::QuicClient(std::string id, std::string host, uint16_t port)
+    QuicClient::QuicClient(std::string id, std::string host, uint16_t port, rule::RuleConfig * ruleConfig)
       : id(std::move(id))
       , host(std::move(host))
       , port(port)
+      , ruleConfig(ruleConfig)
     {
-      assert(!this->id.empty());
-      assert(!this->host.empty());
-      assert(port > 0);
+      fail_if(this->id.empty());
+      fail_if(this->host.empty());
+      fail_if(port == 0);
+      fail_if(!ruleConfig);
 
       this->factory = std::make_unique<ConnectionFactory>();
 
@@ -102,7 +104,7 @@ namespace aeres
     }
 
 
-    bool resolveHost(const std::string & host, ::net::IPAddress & addr)
+    static bool resolveHost(const std::string & host, ::net::IPAddress & addr)
     {
 #if __linux__
       // gethostbyname is not reentrant on linux, use gethostbyname_r instead
@@ -165,7 +167,7 @@ namespace aeres
       sessionDelegate->SetIncomingStreamCallback([this, &client](::net::QuartcStreamInterface * s) {
         Log::Verbose("New incoming QUIC stream connected: s=%p", s);
 
-        auto session = std::make_unique<QuicClientSession>(this->factory.get());
+        auto session = std::make_unique<QuicClientSession>(this->factory.get(), this->ruleConfig);
         if (!session->Initialize(static_cast<::net::QuicRawSession *>(client.session()),
                                  static_cast<::net::QuartcStream *>(s)))
         {

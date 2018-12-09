@@ -31,6 +31,7 @@
 #include <base/memory/weak_ptr.h>
 
 #include <aeres/Connection.h>
+#include <aeres/rule/RuleConfig.h>
 
 namespace base
 {
@@ -58,7 +59,7 @@ namespace aeres
 
     public:
 
-      explicit QuicClientSession(ConnectionFactory * factory);
+      explicit QuicClientSession(ConnectionFactory * factory, rule::RuleConfig * ruleConfig);
 
       ~QuicClientSession();
 
@@ -72,7 +73,7 @@ namespace aeres
 
       void OnQuicReceived(const void * data, size_t len);
 
-      void OnHandshake(uint16_t port);
+      void OnHandshake(const std::string & hostname, uint16_t port, bool tcp);
 
       void OnLocalData(std::shared_ptr<Connection> connectionPtr,
                        std::shared_ptr<Connection> localPtr,
@@ -100,6 +101,8 @@ namespace aeres
       base::TaskRunner * taskRunner = nullptr;
 
       base::WeakPtrFactory<QuicClientSession> weakFactory;
+
+      rule::RuleConfig * ruleConfig = nullptr;
     };
   }
 }

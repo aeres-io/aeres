@@ -104,6 +104,7 @@ std::vector<std::string> Options::args;
 std::string Options::arg1;
 std::string Options::arg2;
 bool Options::daemon;
+std::string Options::rulesFile;
 
 bool Options::Usage(const char * message, ...)
 {
@@ -480,6 +481,11 @@ bool Options::Init(std::vector<std::string> argv)
       assert_argument_index(++i, argv[i-1]);
       logFile = argv[i];
     }
+    else if (argv[i] == "--rule-config")
+    {
+      assert_argument_index(++i, argv[i-1]);
+      rulesFile = argv[i];
+    }
     else if (argv[i] == "--log-level")
     {
       assert_argument_index(++i, argv[i-1]);
@@ -498,9 +504,10 @@ bool Options::Init(std::vector<std::string> argv)
   return Validate();
 }
 
-bool Options::Validate()
+
+static std::string validateHomePath(std::string path, std::string defaultValue)
 {
-  if (cfgFile.size() == 0)
+  if (path.size() == 0)
   {
     const char *homedir;
     if ((homedir = getenv("HOME")) == NULL)
@@ -517,15 +524,23 @@ bool Options::Validate()
     }
     if (homedir != NULL)
     {
-      cfgFile = homedir;
+      path = homedir;
 #ifndef WIN32
-      cfgFile.append("/");
+      path.append("/");
 #else
-      cfgFile.append("\\");
+      path.append("\\");
 #endif
     }
-    cfgFile.append(".aeres.conf");
+    path.append(defaultValue);
   }
+
+  return std::move(path);
+}
+
+
+bool Options::Validate()
+{
+  cfgFile = validateHomePath(std::move(cfgFile), ".aeres.conf");
   Config config(cfgFile);
   if (config.Load())
   {
@@ -615,6 +630,10 @@ bool Options::Validate()
   if (Options::port == 0)
   {
     Options::port = 7900;
+  }
+  if (Options::rulesFile.empty())
+  {
+    Options::rulesFile = validateHomePath(Options::rulesFile, ".aeres.rules");
   }
 
   switch (Options::command)

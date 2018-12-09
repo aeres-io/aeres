@@ -1,14 +1,18 @@
 /*
   MIT License
+
   Copyright (c) 2018 aeres.io
+
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
+
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
+
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,44 +24,38 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <memory>
 #include <string>
+#include <memory>
 #include <vector>
-#include "AeresObject.h"
-#include "AsyncResult.h"
+#include <aeres/rule/RuleBase.h>
 
-#ifdef _WIN32
-#include <basetsd.h>
-typedef SSIZE_T ssize_t;
-#endif
 
 namespace aeres
 {
-  class AeresSystemSecurityApi : public AeresObject
+  namespace rule
   {
-  public:
-
-    struct LoginSocksResult
+    class RuleConfig
     {
-      std::string endpoint;
-      std::string mode;
+    public:
+
+      bool IsDefaultEnabled() const                                   { return this->defaultEnabled; }
+
+      const std::vector<std::shared_ptr<RuleBase>> & Rules() const    { return this->rules; }
+
+      void AddRule(std::shared_ptr<RuleBase> rule, bool isDefault);
+
+      bool Load(const char * path);
+
+      bool Save(const char * path) const;
+
+
+    private:
+
+      bool defaultEnabled = true;
+
+      std::vector<std::shared_ptr<RuleBase>> defaultRules;
+
+      std::vector<std::shared_ptr<RuleBase>> rules;
     };
-
-    struct LoginEndpointResult
-    {
-      std::string et;
-      std::vector<std::string> tunnelRules;
-    };
-
-  public:
-
-    AeresSystemSecurityApi(const char * base, const char * name, const char * path, const char * type);
-
-    AsyncResultPtr<std::string> LoginPassword(const std::string & username, const std::string & password);
-    AsyncResultPtr<LoginEndpointResult> LoginEndpoint(const std::string & appId, const std::string & endpointId);
-    AsyncResultPtr<Json::Value> VerifyEndpointToken(const std::string & et);
-    AsyncResultPtr<LoginSocksResult> LoginSocks(const std::string & username, const std::string & password);
-  };
+  }
 }

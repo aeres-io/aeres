@@ -50,10 +50,16 @@ set(
   BufferStream.cpp
   Config.cpp
   ConnectionFactory.cpp
+  ForwardRule.cpp
   HandshakeInstruction.cpp
   IInputStream.cpp
+  InputRule.cpp
   IOutputStream.cpp
   Log.cpp
+  RuleBase.cpp
+  RuleConfig.cpp
+  RuleHostName.cpp
+  RuleType.cpp
   ScopeGuard.cpp
   SocketConnection.cpp
 )

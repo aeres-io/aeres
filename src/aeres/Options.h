@@ -91,6 +91,7 @@ namespace aeres
     static std::string arg1;
     static std::string arg2;
     static bool daemon;
+    static std::string rulesFile;
 
     static bool Usage(const char * message = nullptr, ...);
     static bool Init(std::vector<std::string> args);

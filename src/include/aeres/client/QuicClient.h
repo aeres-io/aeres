@@ -32,6 +32,7 @@
 #include <memory>
 #include <mutex>
 
+#include <aeres/rule/RuleConfig.h>
 #include <aeres/ConnectionFactory.h>
 #include <aeres/client/QuicClientSession.h>
 
@@ -43,7 +44,7 @@ namespace aeres
     {
     public:
 
-      explicit QuicClient(std::string id, std::string host, uint16_t port);
+      explicit QuicClient(std::string id, std::string host, uint16_t port, rule::RuleConfig * ruleConfig);
 
       ~QuicClient();
 
@@ -74,6 +75,8 @@ namespace aeres
       std::unique_ptr<ConnectionFactory> factory;
 
       std::mutex sessionMutex;
+
+      rule::RuleConfig * ruleConfig;
     };
   }
 }

@@ -41,6 +41,7 @@ namespace aeres
 
     return_false_if(!stream.WriteString(this->hostname));
     return_false_if(!stream.WriteUInt16(this->port));
+    return_false_if(!stream.WriteUInt8(static_cast<uint8_t>(this->protocol)));
     return_false_if(!stream.WriteString(this->data));
 
     return true;
@@ -54,8 +55,12 @@ namespace aeres
     return_false_if(stream.ReadUInt16() != OPCODE_HANDSHAKE);
     return_false_if(stream.ReadString(this->hostname) <= sizeof(uint32_t));
 
-    return_false_if(stream.Remainder() < sizeof(uint16_t));
+    return_false_if(stream.Remainder() < sizeof(uint16_t) + sizeof(uint8_t));
     this->port = stream.ReadUInt16();
+
+    uint8_t protoVal = stream.ReadUInt8();
+    return_false_if(protoVal >= static_cast<uint8_t>(Protocol::__MAX__));
+    this->protocol = static_cast<Protocol>(protoVal);
 
     return_false_if(stream.Remainder() < sizeof(uint32_t));
     return_false_if(stream.ReadString(this->data) < sizeof(uint32_t));

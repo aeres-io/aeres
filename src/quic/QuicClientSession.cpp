@@ -25,7 +25,9 @@
 #include <assert.h>
 
 #ifndef WIN32
+#include <unistd.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #endif
 
 #include <net/tools/quic/relay/quic_raw_session.h>
@@ -44,11 +46,13 @@ namespace aeres
 {
   namespace client
   {
-    QuicClientSession::QuicClientSession(ConnectionFactory * factory)
+    QuicClientSession::QuicClientSession(ConnectionFactory * factory, rule::RuleConfig * ruleConfig)
       : factory(factory)
       , weakFactory(this)
+      , ruleConfig(ruleConfig)
     {
-      assert(factory);
+      fail_if(!factory);
+      fail_if(!ruleConfig);
 
       Log::Debug("QuicClientSession::QuicClientSession: this=%p", this);
 
@@ -105,7 +109,7 @@ namespace aeres
 
               Log::Debug("QuicClientSesion::RecvCallback - Received handshake message: hostname=%s port=%u", instr.HostName().c_str(), instr.Port());
 
-              this->OnHandshake(instr.Port());
+              this->OnHandshake(instr.HostName(), instr.Port(), instr.GetProtocol() == HandshakeInstruction::Protocol::TCP);
             }
             else
             {
@@ -224,16 +228,79 @@ namespace aeres
     }
 
 
-    void QuicClientSession::OnHandshake(uint16_t port)
+    static bool resolveHost(const std::string & host, uint8_t ip[4])
     {
-      const uint8_t ip[4] = { 127, 0, 0, 1 };
+#if __linux__
+      // gethostbyname is not reentrant on linux, use gethostbyname_r instead
+      char buf[BUFSIZ];
+      struct hostent hostinfo = {0};
+      struct hostent * ptr = nullptr;
+      int err = 0;
+
+      if (gethostbyname_r(host.c_str(), &hostinfo, buf, sizeof(buf), &ptr, &err) == 0 &&
+          hostinfo.h_addrtype == AF_INET &&
+          hostinfo.h_addr_list &&
+          hostinfo.h_addr_list[0])
+      {
+        memcpy(ip, hostinfo.h_addr_list[0], 4);
+        return true;
+      }
+#else
+      struct hostent * ptr = gethostbyname(host.c_str());
+      if (ptr && ptr->h_addrtype == AF_INET && ptr->h_addr_list && ptr->h_addr_list[0])
+      {
+        memcpy(ip, hostinfo.h_addr_list[0], 4);
+        return true;
+      }
+#endif
+
+      Log::Error("Failed to resolve hostname %s.", host.c_str());
+      return false;
+    }
+
+
+
+    void QuicClientSession::OnHandshake(const std::string & hostname, uint16_t port, bool tcp)
+    {
+      if (!tcp)
+      {
+        Log::Warning("QuicClientSession::OnHandshake: UDP is not implemented (hostname=%s port=%u)", hostname.c_str(), port);
+        return;
+      }
+
+      bool resolved = false;
+      rule::RuleBase::Host outputHost;
+      for (const auto & rule : this->ruleConfig->Rules())
+      {
+        rule::RuleBase::Host input;
+        input.hostname = rule::RuleHostName(hostname);
+        input.port = port;
+
+        outputHost = rule::RuleBase::Host();
+        if (rule->Resolve(input, tcp, outputHost))
+        {
+          resolved = true;
+          break;
+        }
+      }
+
+      if (!resolved)
+      {
+        Log::Verbose("QuicClientSession::OnHandshake: no tunnel rule can match the incoming request: hostname=%s port=%u", hostname.c_str(), port);
+        return;
+      }
+
+      std::string targetHost = outputHost.hostname.ToString();
+      uint16_t targetPort = outputHost.port;
+      Log::Verbose("QuicClientSession::OnHandshake: connecting to %s:%u by request of %s:%u", targetHost.c_str(), targetPort, hostname.c_str(), port);
+
+      uint8_t ip[4];
+      return_if(!resolveHost(targetHost, ip));
 
       struct sockaddr_in addr;
       addr.sin_family = AF_INET;
-      addr.sin_port = htons(port);
+      addr.sin_port = htons(targetPort);
       addr.sin_addr.s_addr = *((uint32_t *)ip);
-
-      Log::Verbose("Connecting to localhost:%u.", port);
 
       this->local = this->factory->CreateSocketConnection((struct sockaddr *)&addr, sizeof(addr), false);
       if (!this->local)

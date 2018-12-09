@@ -22,6 +22,8 @@
   SOFTWARE.
 */
 
+#pragma once
+
 #include <string>
 #include <stdint.h>
 #include <aeres/IInputStream.h>
@@ -33,15 +35,28 @@ namespace aeres
   {
   public:
 
+    enum class Protocol
+    {
+      TCP,
+      UDP,
+      __MAX__
+    };
+
+  public:
+
     const std::string & HostName() const     { return this->hostname; }
 
     uint16_t Port() const                    { return this->port; }
+
+    Protocol GetProtocol() const             { return this->protocol; }
 
     const std::string & Data() const         { return this->data; }
 
     void SetHostName(std::string val)        { this->hostname = std::move(val); }
 
     void SetPort(uint16_t val)               { this->port = val; }
+
+    void SetProtocol(Protocol val)           { this->protocol = val; }
 
     void SetData(std::string val)            { this->data = std::move(val); }
 
@@ -54,6 +69,8 @@ namespace aeres
     std::string hostname;
 
     uint16_t port = 0;
+
+    Protocol protocol = Protocol::TCP;
 
     std::string data;
   };

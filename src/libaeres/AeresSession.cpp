@@ -230,22 +230,6 @@ namespace aeres
     return stFound;
   }
 
-  std::string AeresSession::LoginEndpoint(std::string & appId, std::string & endpointId)
-  {
-    auto systemSecurity = std::static_pointer_cast<aeres::AeresSystemSecurityApi>(this->CreateObject("SystemSecurity", "system://Security", "SystemSecurity"));
-    auto result = systemSecurity->LoginEndpoint(appId, endpointId);
-
-    if(!result->Wait() || result->HasError())
-    {
-      return "";
-    }
-
-    auto res = result->GetResult();
-
-    return res.c_str();
-  }
-
-
 
   Json::Value AeresSession::VerifyEndpointToken(std::string & et)
   {
