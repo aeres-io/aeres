@@ -250,7 +250,7 @@ namespace aeres
       struct hostent * ptr = gethostbyname(host.c_str());
       if (ptr && ptr->h_addrtype == AF_INET && ptr->h_addr_list && ptr->h_addr_list[0])
       {
-        memcpy(ip, hostinfo.h_addr_list[0], 4);
+        memcpy(ip, ptr->h_addr_list[0], 4);
         return true;
       }
 #endif
