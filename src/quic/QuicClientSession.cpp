@@ -36,6 +36,7 @@
 
 #include <aeres/Log.h>
 #include <aeres/Util.h>
+#include <aeres/ScopeGuard.h>
 #include <aeres/ConnectionFactory.h>
 #include <aeres/HandshakeInstruction.h>
 #include <aeres/BufferedInputStream.h>
@@ -262,6 +263,14 @@ namespace aeres
 
     void QuicClientSession::OnHandshake(const std::string & hostname, uint16_t port, bool tcp)
     {
+      ScopeGuard guard([this]() {
+        if (!this->taskRunner ||
+            !this->taskRunner->PostTask(base::Bind(&QuicClientSession::Close, this->weakFactory.GetWeakPtr())))
+        {
+          Log::Warning("QuicClientSession: failed to clean up failing session. this=%p", this);
+        }
+      });
+
       if (!tcp)
       {
         Log::Warning("QuicClientSession::OnHandshake: UDP is not implemented (hostname=%s port=%u)", hostname.c_str(), port);
@@ -306,11 +315,6 @@ namespace aeres
       if (!this->local)
       {
         Log::Warning("QuicClientSession: failed to create socket connection to %u.%u.%u.%u:%u", ip[0], ip[1], ip[2], ip[3], port);
-        if (!this->taskRunner ||
-            !this->taskRunner->PostTask(base::Bind(&QuicClientSession::Close, this->weakFactory.GetWeakPtr())))
-        {
-          Log::Warning("QuicClientSession: failed to clean up failing session. this=%p", this);
-        }
         return; 
       }
 
@@ -342,6 +346,8 @@ namespace aeres
           }
         }
       );
+
+      guard.Reset();
     }
   }
 }
