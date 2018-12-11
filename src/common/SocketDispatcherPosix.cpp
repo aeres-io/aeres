@@ -325,9 +325,7 @@ namespace aeres
   {
     int fd = entry.connection->Fd();
 
-    return_if(entry.busyOut);
-
-    while (entry.sendBuf.Size() > 0)
+    while (!entry.busyOut && entry.sendBuf.Size() > 0)
     {
       uint8_t buf[8192];
       size_t size = entry.sendBuf.PeekBuffer(buf, sizeof(buf));
