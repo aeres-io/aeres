@@ -16,7 +16,7 @@ This document illustrates the steps to build aeres on Linux.
 For example, the dependencies can be installed using the following command on Ubuntu 18:
 
 ```bash
-$ sudo apt-get install gcc cmake libssl-dev libcurl4-openssl-devl zlib1g-dev libreadline-dev libnss3-dev libnspr4-dev
+$ sudo apt-get install git gcc g++ cmake pkg-config libssl-dev libcurl4-openssl-dev zlib1g-dev libreadline-dev libnss3-dev libnspr4-dev
 ```
 
 ## Build Steps
