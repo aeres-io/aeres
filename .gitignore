@@ -54,7 +54,11 @@ cmake.out
 cmake.x64
 cmake.x86
 
+# Include Makefiles in setup
+!setup/**/Makefile
+
 # Generated files
 out
 x64
 x86
+
