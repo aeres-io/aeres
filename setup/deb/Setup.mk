@@ -1,4 +1,4 @@
-# Copyright 2016 FileGear - All Rights Reserved
+# Copyright 2018 - aeres.io - All Rights Reserved
 
 ifeq ($(ROOT),)
 $(error "Please set ROOT variable")
