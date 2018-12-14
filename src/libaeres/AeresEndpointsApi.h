@@ -39,7 +39,7 @@ namespace aeres
   public:
     AeresEndpointsApi(const char * base, const char * name, const char * path, const char * type);
 
-    AsyncResultPtr<Json::Value> GetEndpoints();
+    AsyncResultPtr<Json::Value> GetEndpointsSummary();
     AsyncResultPtr<Json::Value> NewEndpoint(const char * description = nullptr);
   };
 }

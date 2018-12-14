@@ -190,6 +190,9 @@ bool Options::Usage(const char * message, ...)
       printf("  Description                     <string>\n");
       printf("\n");
       break;
+
+// Help for rules disabled!
+/*
     case Command::Rule:
       printf("Usage:\n");
       printf("\n");
@@ -262,6 +265,7 @@ bool Options::Usage(const char * message, ...)
       printf("    both\n");
       printf("\n");
       break;
+*/
     case Command::Listen:
       printf("Usage:\n");
       printf("\n");
@@ -309,7 +313,7 @@ bool Options::Usage(const char * message, ...)
       printf("  aeres                          Enter REPL environment\n");
       printf("  aeres app                      Manage applications\n");
       printf("  aeres endpoint                 Manage endpoints\n");
-      printf("  aeres rule                     Manage rules\n");
+//      printf("  aeres rule                     Manage rules\n");
       printf("  aeres listen                   Start listen service\n");
       printf("  aeres tunnel                   Start tunnel service\n");
       printf("  aeres saveconfig               Save options to config\n");
@@ -422,6 +426,10 @@ bool Options::Init(std::vector<std::string> argv)
     else if (argv[i] == "--set")
     {
       action = Action::Set;
+    }
+    else if (argv[i] == "--set-rules")
+    {
+      action = Action::SetRules;
     }
     else if (argv[i] == "--del")
     {
@@ -691,6 +699,7 @@ bool Options::Validate()
         case Action::Unknown:
           return Usage("Error: missing action\n");
         case Action::Set:
+        case Action::SetRules:
           if (args.size() < 2)
           {
             return Usage("Error: missing argument\n");

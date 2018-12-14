@@ -47,5 +47,7 @@ namespace aeres
 
     AsyncResultPtr<Json::Value> GetRules();
     AsyncResultPtr<Json::Value> NewRule(const std::string & action, const std::string & domain, const std::string & port, const std::string & protocol);
+    AsyncResultPtr<Json::Value> SetRulesSummary(const std::string & domains, const std::string & ports);
+    AsyncResultPtr<Json::Value> GetRulesSummary();
   };
 }

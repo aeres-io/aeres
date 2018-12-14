@@ -22,6 +22,7 @@ public:
   bool GetAll(std::string & endpoint);
   bool Get(std::string & endpoint, std::string & name);
   bool Set(std::string & endpoint, std::string & name, std::string & value);
+  bool SetRules(std::string & endpoint, std::string & domains, std::string & ports);
   bool Del(std::string & endpoint, std::string & name);
 };
 
