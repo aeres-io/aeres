@@ -48,6 +48,10 @@ bool AeresEndpointCli::Process()
       {
         return Set(Options::endpointId, Options::arg1, Options::arg2);
       }
+      case Action::SetRules:
+      {
+        return SetRules(Options::endpointId, Options::arg1, Options::arg2);
+      }
       default:
       {
         printf("Unsupported action\n");
@@ -65,7 +69,7 @@ bool AeresEndpointCli::Process()
 bool AeresEndpointCli::List()
 {
   auto endpointsApi = std::static_pointer_cast<aeres::AeresEndpointsApi>(session->CreateObject("Endpoints", "name://Endpoints", "Endpoints"));
-  auto result = endpointsApi->GetEndpoints();
+  auto result = endpointsApi->GetEndpointsSummary();
 
   if (!result->Wait() || result->HasError())
   {
@@ -80,10 +84,24 @@ bool AeresEndpointCli::List()
 
   if(jsonArray.size())
   {
-    printf("%-20s%-32s\n", "EndpointID", "Description");
+    printf("%-16s %-12s %-50s %-30s %-32s\n", "EndpointID", "Status", "Domains", "Ports", "Description");
     for (size_t i = 0; i < jsonArray.size(); i++)
     {
-      printf("%-20s%-32s\n", jsonArray[i]["Properties"]["EndpointId"].asString().c_str(), jsonArray[i]["Properties"]["Description"].asString().c_str());
+      auto domains = jsonArray[i]["Properties"]["Domains"].asString();
+      auto ports = jsonArray[i]["Properties"]["Ports"].asString();
+
+      if (domains.length() > 50)
+        domains = domains.substr(0, 47) + "...";
+
+      if (ports.length() > 30)
+        ports = ports.substr(0, 27) + "...";
+
+      printf("%-16s %-12s %-50s %-30s %-32s\n",
+        jsonArray[i]["Properties"]["EndpointId"].asString().c_str(),
+        jsonArray[i]["Properties"]["Verified"].asBool() ? "Accepted" : "Pending",
+        domains.c_str(),
+        ports.c_str(),
+        jsonArray[i]["Properties"]["Description"].asString().c_str());
     }
   }
 
@@ -183,6 +201,37 @@ bool AeresEndpointCli::Get(std::string & endpoint, std::string & name)
     res = result->Wait() && !result->HasError();
     std::cout << result->GetResult() << std::endl;
   }
+  else if (name == "Domains" || name == "Ports")
+  {
+    auto result = epApi->GetRulesSummary();
+
+    if (!result->Wait() || result->HasError())
+    {
+    std::cout << "false" << std::endl;
+      return false;
+    }
+
+    auto &json = result->GetResult();
+    if (!json.isObject())
+    {
+      std::cout << "false" << std::endl;
+      return false;
+    }
+
+    if (name == "Domains")
+    {
+      std::cout << json["Domains"].asString() << std::endl;
+    }
+    else if (name == "Ports")
+    {
+      std::cout << json["Ports"].asString() << std::endl;
+    }
+  }
+  else
+  {
+    std::cout << "false" << std::endl;
+    res = false;
+  }
 
   return res;
 }
@@ -200,6 +249,78 @@ bool AeresEndpointCli::Set(std::string & endpoint, std::string & name, std::stri
     res = result->Wait() && !result->HasError();
     std::cout << result->GetResult() << std::endl;
   }
+  else if (name == "Domains")
+  {
+    std::string empty = std::string();
+    res = SetRules(endpoint, value, empty);
+  }
+  else if (name == "Ports")
+  {
+    std::string empty = std::string();
+    res = SetRules(endpoint, empty, value);
+  }
+  else
+  {
+    std::cout << "false" << std::endl;
+    res = false;
+  }
+
+  return res;
+}
+
+bool AeresEndpointCli::SetRules(std::string & endpoint, std::string & domains, std::string & ports)
+{
+  std::string path = "name://Endpoints/" + endpoint;
+  auto epApi = std::static_pointer_cast<AeresEndpointApi>(session->CreateObject("Endpoints", path.c_str(), "Endpoints"));
+
+  if (domains.empty() && ports.empty())
+  {
+    std::cout << "false" << std::endl;
+    return false;
+  }
+
+  if (domains.empty() || ports.empty())
+  {
+    auto result = epApi->GetRulesSummary();
+
+    if (!result->Wait() || result->HasError())
+    {
+      std::cout << "false" << std::endl;
+      return false;
+    }
+
+    auto &json = result->GetResult();
+    if (!json.isObject())
+    {
+      std::cout << "false" << std::endl;
+      return false;
+    }
+
+    if (domains.empty())
+    {
+      domains = json["Domains"].asString();
+    }
+    if (ports.empty())
+    {
+      ports = json["Ports"].asString();
+    }
+  }
+
+
+  if (domains.empty() || ports.empty())
+  {
+    std::cout << "false" << std::endl;
+    return false;
+  }
+
+  std::cout << "Domains: " << domains << std::endl;
+  std::cout << "Ports: " << ports << std::endl;
+
+  bool res = false;
+
+  auto result = epApi->SetRulesSummary(domains, ports);
+  res = result->Wait() && !result->HasError();
+  std::cout << result->GetResult() << std::endl;
 
   return res;
 }

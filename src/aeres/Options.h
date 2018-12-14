@@ -46,8 +46,9 @@ namespace aeres
       Get = 7,
       GetAll = 8,
       Set = 9,
-      Del = 10,
-      Unknown = 11
+      SetRules = 10,
+      Del = 11,
+      Unknown = 12
     };
 
     const char * ToString(T value);
