@@ -32,12 +32,12 @@ namespace aeres
   {
   }
 
-  AsyncResultPtr<Json::Value> AeresEndpointsApi::GetEndpointsSummary()
+  AsyncResultPtr<Json::Value> AeresEndpointsApi::GetEndpoints()
   {
     AeresObject::CArgs args;
 
     auto result = std::make_shared<AsyncResult<Json::Value>>();
-    bool rtn = this->Call("GetEndpointsSummary", args,
+    bool rtn = this->Call("GetEndpoints", args,
       [result](Json::Value & response, bool error)
       {
         result->SetError(error);
