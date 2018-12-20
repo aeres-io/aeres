@@ -84,24 +84,28 @@ bool AeresEndpointCli::List()
 
   if(jsonArray.size())
   {
-    printf("%-16s %-12s %-50s %-30s %-32s\n", "EndpointID", "Status", "Domains", "Ports", "Description");
+    printf("%-13s %-9s %-20s %-14s %-20s\n", "EndpointID", "Status", "Domains", "Ports", "Description");
     for (size_t i = 0; i < jsonArray.size(); i++)
     {
       auto domains = jsonArray[i]["Properties"]["Domains"].asString();
       auto ports = jsonArray[i]["Properties"]["Ports"].asString();
+      auto description = jsonArray[i]["Properties"]["Description"].asString();
 
-      if (domains.length() > 50)
-        domains = domains.substr(0, 47) + "...";
+      if (domains.length() > 20)
+        domains = domains.substr(0, 17) + "...";
 
-      if (ports.length() > 30)
-        ports = ports.substr(0, 27) + "...";
+      if (ports.length() > 14)
+        ports = ports.substr(0, 11) + "...";
 
-      printf("%-16s %-12s %-50s %-30s %-32s\n",
+      if (description.length() > 20)
+        description = description.substr(0, 17) + "...";
+
+      printf("%-13s %-9s %-20s %-14s %-20s\n",
         jsonArray[i]["Properties"]["EndpointId"].asString().c_str(),
         jsonArray[i]["Properties"]["Verified"].asBool() ? "Accepted" : "Pending",
         domains.c_str(),
         ports.c_str(),
-        jsonArray[i]["Properties"]["Description"].asString().c_str());
+        description.c_str());
     }
   }
 
@@ -199,19 +203,57 @@ bool AeresEndpointCli::Get(std::string & endpoint, std::string & name)
   {
     auto result = epApi->GetDescription();
     res = result->Wait() && !result->HasError();
-    std::cout << result->GetResult() << std::endl;
+    std::cout << result->GetResult().asString() << std::endl;
   }
   else if (name == "Domains")
   {
     auto result = epApi->GetDomains();
     res = result->Wait() && !result->HasError();
-    std::cout << result->GetResult() << std::endl;
+
+    auto json = result->GetResult();
+    if (!json.isArray())
+    {
+      std::cout << json << std::endl;
+      return false;
+    }
+
+    std::string delim(", ");
+    std::string output;
+    for (size_t i = 0; i < json.size(); ++i)
+    {
+      if (!output.empty())
+      {
+        output += delim;
+      }
+      output += json[i].asString();
+    }
+
+    std::cout << output << std::endl;
   }
   else if (name == "Ports")
   {
     auto result = epApi->GetPorts();
     res = result->Wait() && !result->HasError();
-    std::cout << result->GetResult() << std::endl;
+
+    auto json = result->GetResult();
+    if (!json.isArray())
+    {
+      std::cout << json << std::endl;
+      return false;
+    }
+
+    std::string delim(", ");
+    std::string output;
+    for (size_t i = 0; i < json.size(); ++i)
+    {
+      if (!output.empty())
+      {
+        output += delim;
+      }
+      output += json[i].asString();
+    }
+
+    std::cout << output << std::endl;
   }
   else
   {
