@@ -6,8 +6,13 @@ VPATH = $(ROOT)/out/bin $(ROOT)/src/libquic/out/lib
 
 TARGET = aeres
 
+ifeq ($(TARGET_PLATFORM),raspbian)
+PKGCFG = \
+	control.pi
+else
 PKGCFG = \
   control
+endif
 
 PKG = \
   postinst

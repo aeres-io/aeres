@@ -1,0 +1,8 @@
+Package: aeres
+Version: PACKAGE_VERSION
+Section: base
+Priority: optional
+Architecture: armhf
+Maintainer: Aeres <info@aeres.io>
+Depends: libssl1.1 | libssl1.0.0, libcurl3 | libcurl4
+Description: Aeres Client

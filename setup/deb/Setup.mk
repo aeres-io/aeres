@@ -22,10 +22,16 @@ AERES_VERSION_MAJOR=$(word 1, $(AERES_VERSION_COMPONENTS))
 AERES_VERSION_MINOR=$(word 2, $(AERES_VERSION_COMPONENTS))
 AERES_VERSION_BUILD=$(word 3, $(AERES_VERSION_COMPONENTS))
 
+ifneq ($(TARGET_PLATFORM),raspbian)
 LINUX_CODENAME=$(shell lsb_release -c -s)
 LINUX_RELEASE=$(shell lsb_release -r -s)
 LINUX_DISTRO=$(shell lsb_release -i -s | tr "[:upper:]" "[:lower:]")
 MACHINE_ARCH=$(shell uname -m)
+else
+LINUX_RELEASE=4.14
+LINUX_DISTRO=raspberrypi
+MACHINE_ARCH=armhf
+endif
 
 PACKAGE_VERSION ?= $(AERES_VERSION_MAJOR).$(AERES_VERSION_MINOR)-$(AERES_VERSION_BUILD)
 

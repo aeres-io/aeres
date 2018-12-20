@@ -5,6 +5,7 @@ The detailed build instructions for different platforms are covered in the follo
  - [Linux](doc/build.linux.md)
  - [Windows](doc/build.windows.md)
  - [macOS](doc/build.macos.md)
+ - [Raspberry Pi](doc/build.raspbian.md)
 
 Prebuilt packages for aeres can be found at https://www.aereslab.com.
 
