@@ -57,6 +57,10 @@ add_library(
 include_directories("../include")
 include_directories("${ROOT_JSONCPP}/src/include")
 
+if (DEFINED SYSROOT)
+  include_directories("${SYSROOT}/usr/include")
+endif (DEFINED SYSROOT)
+
 if (DEFINED DEBUG_HTTP)
   add_definitions(-DDEBUG_HTTP)
 endif (DEFINED DEBUG_HTTP)

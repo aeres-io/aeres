@@ -56,6 +56,13 @@ include_directories("${ROOT_LIBQUIC}/src/quic/gen")
 include_directories("${ROOT_LIBQUIC}/src/quic/third_party/protobuf/src")
 include_directories("${ROOT_JSONCPP}/src/include")
 
+if (DEFINED SYSROOT)
+  include_directories("${SYSROOT}/usr/include")
+#  list(APPEND CMAKE_PREFIX_PATH "${SYSROOT}/usr")
+#  link_directories("${SYSROOT}/usr/lib")
+endif (DEFINED SYSROOT)
+
+
 if (NOT DEFINED WINDOWS)
   aeres_lib(aeres libaeres-client ${LIBDIR}/libaeres-client.a)
   aeres_lib(aeres libaeres-quic ${LIBDIR}/libaeres-quic.a)
@@ -85,8 +92,7 @@ if (NOT DEFINED OPENSSL_LIBRARIES)
 endif (NOT DEFINED OPENSSL_LIBRARIES)
 
 if (DEFINED WINDOWS)
-  include_directories(${READLINE_ROOT}/include)
-  add_definitions(-DUSE_READLINE_STATIC)
+  add_definitions(-DNO_READLINE)
 
   include_directories(${OPENSSL_ROOT}/include)
 
@@ -102,7 +108,12 @@ else()
   aeres_sys_lib(aeres quic)
   aeres_sys_lib(aeres dl)
   aeres_sys_lib(aeres z)
-  aeres_sys_lib(aeres readline)
+
+  if (NOT DEFINED NO_READLINE)
+    aeres_sys_lib(aeres readline)
+  else()
+    add_definitions(-DNO_READLINE)
+  endif (NOT DEFINED NO_READLINE)
 
   aeres_use_pthread(aeres)
 endif (DEFINED WINDOWS)

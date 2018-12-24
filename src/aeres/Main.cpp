@@ -34,7 +34,7 @@
 #include "Options.h"
 
 #include <stdio.h>
-#ifndef WIN32
+#ifndef NO_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
 #endif
@@ -84,7 +84,7 @@ int main(int argc, const char ** argv)
   {
     case Command::None:
     {
-#ifndef WIN32
+#ifndef NO_READLINE
       while (true)
       {
         std::string line;
