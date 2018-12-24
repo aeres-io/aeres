@@ -6,6 +6,7 @@ The detailed build instructions for different platforms are covered in the follo
  - [Windows](doc/build.windows.md)
  - [macOS](doc/build.macos.md)
  - [Raspberry Pi](doc/build.raspbian.md)
+ - [OpenWRT](doc/build.openwrt.md)
 
 Prebuilt packages for aeres can be found at https://www.aereslab.com.
 
